@@ -33,7 +33,10 @@ export const registerUser = async (data: RegisterData) => {
   });
 
   const token = jwt.sign(
-    { userId: user.id },
+    {
+      userId: user.id,
+      role: user.role,
+    },
     (process.env.JWT_SECRET as string) || "default-secret-key",
     { expiresIn: process.env.JWT_EXPIRES_IN } as any,
   );
@@ -56,7 +59,10 @@ export const loginUser = async (data: LoginData) => {
   }
 
   const token = jwt.sign(
-    { userId: user.id },
+    {
+      userId: user.id,
+      role: user.role,
+    },
     (process.env.JWT_SECRET as string) || "default-secret-key",
     { expiresIn: process.env.JWT_EXPIRES_IN } as any,
   );
