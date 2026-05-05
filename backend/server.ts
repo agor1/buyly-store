@@ -13,10 +13,11 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(authMiddleware);
+app.use("/api/auth", authRoutes);
+app.use("/api", authMiddleware, routes);
 
 // Health check
-app.get("/health", async (req: Request, res: Response) => {
+app.get("/health", authMiddleware, async (req: Request, res: Response) => {
   try {
     const count = await prisma.user.count();
     res.json({ status: "ok", userCount: count });
