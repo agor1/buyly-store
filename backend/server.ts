@@ -2,9 +2,9 @@ import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import "dotenv/config";
 import { prisma } from "./src/lib/prisma";
-import routes from "./src/routes/index.js";
-import authRoutes from "./src/routes/auth.js";
-import { authMiddleware } from "./src/middleware/auth.js";
+import routes from "./src/routes/index.route.js";
+import authRoutes from "./src/routes/auth.route.js";
+import { authMiddleware } from "./src/middleware/auth.middleware.js";
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
