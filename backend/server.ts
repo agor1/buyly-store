@@ -3,6 +3,8 @@ import cors from "cors";
 import "dotenv/config";
 import { prisma } from "./src/lib/prisma";
 import routes from "./src/routes/index.js";
+import authRoutes from "./src/routes/auth.js";
+import { authMiddleware } from "./src/middleware/auth.js";
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
@@ -11,9 +13,10 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(authMiddleware);
 
 // Health check
-app.get("/health", async (req, res) => {
+app.get("/health", async (req: Request, res: Response) => {
   try {
     const count = await prisma.user.count();
     res.json({ status: "ok", userCount: count });
@@ -24,9 +27,10 @@ app.get("/health", async (req, res) => {
 
 // Routes
 app.use("/api", routes);
+app.use("/api/auth", authRoutes);
 
 // 404 Handler
-app.use((req, res) => {
+app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Route not found" });
 });
 

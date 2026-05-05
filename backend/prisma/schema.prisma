@@ -32,7 +32,7 @@ model User {
   email     String   @unique
   password_hash String 
   name      String  
-  role      UserRole @default(GUEST)
+  role      UserRole @default(CUSTOMER)
   created_at DateTime @default(now())
 
   orders    Order[]
