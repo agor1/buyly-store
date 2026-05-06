@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import { Request, Response, NextFunction } from "express";
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -68,4 +67,19 @@ export const loginUser = async (data: LoginData) => {
   );
 
   return { user, token };
+};
+
+// Change user role (only admin)
+export const changeUserRole = async (userId: string, role: "ADMIN" | "CUSTOMER") => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new Error("USER_NOT_FOUND");
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { role },
+  });
+
+  return updatedUser;
 };

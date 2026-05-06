@@ -2,10 +2,9 @@ import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import "dotenv/config";
 import { prisma } from "./src/lib/prisma";
-import routes from "./src/routes/index.routes.js";
 import authRoutes from "./src/routes/auth.routes.js";
+import productRoutes from "./src/routes/product.routes.js";
 import { authMiddleware } from "./src/middleware/auth.middleware.js";
-import { roleMiddleware } from "./src/middleware/role.middleware";
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
@@ -14,8 +13,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/api/auth", authMiddleware, authRoutes);
-app.use("/api", authMiddleware, roleMiddleware(["CUSTOMER", "ADMIN"]), routes);
+
+//app.use("/api", authMiddleware, roleMiddleware(["CUSTOMER", "ADMIN"]), routes);
 
 // Health check
 app.get("/health", authMiddleware, async (req: Request, res: Response) => {
@@ -28,8 +27,9 @@ app.get("/health", authMiddleware, async (req: Request, res: Response) => {
 });
 
 // Routes
-app.use("/api", routes);
 app.use("/api/auth", authRoutes);
+app.use("/api/auth", authMiddleware, authRoutes);
+app.use("/api/products", productRoutes);
 
 // 404 Handler
 app.use((req: Request, res: Response) => {
