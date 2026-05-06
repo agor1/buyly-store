@@ -4,6 +4,7 @@ import "dotenv/config";
 import { prisma } from "./src/lib/prisma";
 import authRoutes from "./src/routes/auth.routes.js";
 import productRoutes from "./src/routes/product.routes.js";
+import ordersRoutes from "./src/routes/order.routes.js";
 import { authMiddleware } from "./src/middleware/auth.middleware.js";
 
 const app: Express = express();
@@ -27,9 +28,9 @@ app.get("/health", authMiddleware, async (req: Request, res: Response) => {
 });
 
 // Routes
-app.use("/api/auth", authRoutes);
 app.use("/api/auth", authMiddleware, authRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/orders", authMiddleware, ordersRoutes);
 
 // 404 Handler
 app.use((req: Request, res: Response) => {

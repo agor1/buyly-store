@@ -11,7 +11,7 @@ export const getOrders = async () => {
           email: true,
         },
       },
-      items: {
+      order_items: {
         include: {
           product: {
             select: {

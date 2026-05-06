@@ -5,12 +5,7 @@ import {
   getMyOrders,
 } from "../services/orders.service";
 import { Request, Response } from "express";
-
-interface OrderRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
+import { AuthRequest } from "../types/authRequest";
 
 // Get all orders controller
 export const getAllOrders = async (req: Request, res: Response) => {
@@ -37,14 +32,14 @@ export const createNewOrder = async (req: Request, res: Response) => {
 // Update order status controller
 export const updateOrder = async (req: Request, res: Response) => {
   try {
-    const { orderId } = req.params;
+    const { id } = req.params;
     const { status } = req.body;
 
-    if (!orderId) {
+    if (!id) {
       return res.status(400).json({ error: "Order ID is required" });
     }
 
-    const updatedOrder = await updateOrderStatus(orderId, status);
+    const updatedOrder = await updateOrderStatus(id, status);
     res.status(200).json(updatedOrder);
   } catch (error) {
     res.status(500).json({ error: "Failed to update order status" });
@@ -52,9 +47,9 @@ export const updateOrder = async (req: Request, res: Response) => {
 };
 
 // Get my orders controller
-export const getUserOrders = async (req: OrderRequest, res: Response) => {
+export const getUserOrders = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.userId;
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
