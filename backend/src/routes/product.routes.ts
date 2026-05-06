@@ -4,6 +4,7 @@ import {
   getAllProducts,
   createProduct,
   deleteProductById,
+  updateProductById,
 } from "../controllers/product.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { roleMiddleware } from "../middleware/role.middleware.js";
@@ -20,6 +21,13 @@ router.post(
   authMiddleware,
   roleMiddleware(["ADMIN"]),
   createProduct,
+);
+router.put(
+  "/:id",
+  validateRequest(createProductSchema),
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  updateProductById,
 );
 router.delete(
   "/:id",
