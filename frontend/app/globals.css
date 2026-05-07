@@ -179,13 +179,23 @@ body {
 
 @layer utilities {
   .scanlines {
-    background-image: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgb(0 200 255 / 1.2%) 2px,
-      rgb(0 200 255 / 1.2%) 4px
-    );
+    background-image:
+      linear-gradient(rgb(0 200 255 / 4%) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(0 200 255 / 4%) 1px, transparent 1px),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgb(0 200 255 / 1.2%) 2px,
+        rgb(0 200 255 / 1.2%) 4px
+      ),
+      radial-gradient(circle at 50% 0%, rgb(0 200 255 / 8%), transparent 38%);
+    background-position: center top;
+    background-size:
+      44px 44px,
+      44px 44px,
+      100% 4px,
+      100% 100%;
   }
 
   .text-balance {

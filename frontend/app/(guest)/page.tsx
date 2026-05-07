@@ -5,7 +5,9 @@ import {
   Truck,
 } from "@phosphor-icons/react/dist/ssr";
 
+import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const products = [
   {
@@ -62,13 +64,13 @@ const benefits = [
 
 export default function Home() {
   return (
-    <main className="scanlines flex-1 bg-base text-text">
-      <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-10 px-6 py-12 md:grid-cols-[1.05fr_0.95fr] lg:px-10">
+    <main className="scanlines flex-1 overflow-x-hidden bg-base text-text">
+      <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-4 py-10 sm:px-6 md:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-10">
         <div className="max-w-2xl">
           <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
             {"// marketplace online"}
           </p>
-          <h1 className="mt-4 font-display text-5xl font-extrabold leading-none tracking-normal text-text-bright md:text-7xl">
+          <h1 className="mt-4 font-display text-4xl font-extrabold leading-none tracking-normal text-text-bright sm:text-5xl md:text-6xl xl:text-7xl">
             Wszystko, czego szukasz, w jednym sklepie.
           </h1>
           <p className="mt-6 max-w-xl text-body text-muted-foreground">
@@ -77,7 +79,7 @@ export default function Home() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button className="bg-cyan text-black hover:bg-cyan-dim">
-              Zobacz okazje
+              <Link href="/products">Zobacz okazje</Link>
               <ArrowRight />
             </Button>
             <Button
@@ -89,14 +91,14 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="border-hairline border-border bg-surface p-4 shadow-cyan">
-          <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+        <div className="min-w-0 border-hairline border-border bg-surface p-3 shadow-cyan sm:p-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
             <span className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
               {"// dzisiejsza oferta"}
             </span>
             <span className="text-caption text-muted-foreground">BUYLY_01</span>
           </div>
-          <div className="grid min-h-[430px] gap-3 sm:grid-cols-[0.8fr_1.2fr]">
+          <div className="grid gap-3 md:grid-cols-[0.8fr_1.2fr] lg:min-h-[430px]">
             <div className="grid gap-3">
               <div className="border-hairline border-border bg-elevated p-4">
                 <p className="text-caption uppercase tracking-[0.12em] text-muted-foreground">
@@ -112,12 +114,12 @@ export default function Home() {
                 <div className="mt-3 h-2 w-1/2 bg-cyan" />
               </div>
             </div>
-            <div className="flex flex-col justify-between border-hairline border-cyan bg-base p-5">
+            <div className="flex min-h-[320px] flex-col justify-between border-hairline border-cyan bg-base p-4 sm:p-5">
               <div>
                 <span className="border-hairline border-amber bg-amber-bg px-2 py-1 font-mono text-label font-bold uppercase tracking-[0.1em] text-amber">
                   bestseller
                 </span>
-                <h2 className="mt-5 font-display text-4xl font-extrabold leading-none text-text-bright">
+                <h2 className="mt-5 font-display text-3xl font-extrabold leading-none text-text-bright sm:text-4xl">
                   Smart Home Bundle
                 </h2>
               </div>
@@ -137,7 +139,7 @@ export default function Home() {
       </section>
 
       <section className="border-y border-border bg-surface">
-        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px px-6 py-8 md:grid-cols-4 lg:px-10">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-px px-4 py-8 sm:grid-cols-2 sm:px-6 md:grid-cols-4 lg:px-10">
           {collections.map((collection) => (
             <div
               className="border-hairline border-border bg-base px-4 py-6 hover:border-cyan cursor-pointer transition-colors"
@@ -152,13 +154,13 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-16 lg:px-10">
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
               {"// produkty"}
             </p>
-            <h2 className="mt-3 font-display text-3xl font-extrabold text-text-bright">
+            <h2 className="mt-3 font-display text-2xl font-extrabold text-text-bright sm:text-3xl">
               Popularne produkty z roznych kategorii.
             </h2>
           </div>
@@ -169,7 +171,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
             <article
               className="group border-hairline border-border bg-surface p-3 transition-colors hover:border-cyan"
@@ -201,7 +203,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-4 px-6 pb-16 md:grid-cols-3 lg:px-10">
+      <section className="mx-auto grid max-w-7xl gap-4 px-4 pb-14 sm:px-6 md:grid-cols-3 md:pb-16 lg:px-10">
         {benefits.map((benefit) => {
           const Icon = benefit.icon;
 
@@ -222,23 +224,7 @@ export default function Home() {
         })}
       </section>
 
-      <footer className="border-t border-border bg-surface">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8 md:flex-row md:items-center md:justify-between lg:px-10">
-          <div>
-            <p className="font-display text-xl font-extrabold text-text-bright">
-              BUY<span className="text-cyan">LY</span>
-            </p>
-            <p className="mt-2 text-caption text-muted-foreground">
-              Zakupy online na wyciągnięcie ręki. Poznaj BUYLY
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-4 text-caption uppercase tracking-[0.12em] text-muted-foreground">
-            <span>Instagram</span>
-            <span>Terms</span>
-            <span>Privacy</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }
