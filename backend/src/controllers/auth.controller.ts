@@ -12,8 +12,14 @@ export const register = async (req: Request, res: Response) => {
     const { email, password, name } = req.body;
     const { user, token } = await registerUser({ email, password, name });
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7d
+    });
+
     res.json({
-      token,
       user: { id: user.id, email: user.email },
     });
   } catch (error) {
@@ -32,8 +38,14 @@ export const login = async (req: Request, res: Response) => {
 
     const { user, token } = await loginUser({ email, password });
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7d
+    });
+
     res.json({
-      token,
       user: { id: user.id, email: user.email },
     });
   } catch (error) {
