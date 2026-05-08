@@ -1,11 +1,40 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, ShieldCheck } from "@phosphor-icons/react/dist/ssr";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
+import { useAuth } from "@/app/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const { login, loading, error } = useAuth();
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFormError(null);
+
+    if (!email || !password) {
+      setFormError("Wszystkie pola są wymagane");
+      return;
+    }
+
+    router.push("/");
+    try {
+      await login({ email, password });
+    } catch (err) {
+      setFormError(error || "Logowanie nie powiodło się");
+    }
+  };
+
   return (
     <main className="scanlines flex-1 bg-base text-text">
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-6 py-10 md:grid-cols-[0.9fr_1.1fr] lg:px-10">
@@ -67,7 +96,10 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="w-full border-hairline border-border bg-surface p-4 shadow-cyan sm:p-6">
+          <form
+            className="w-full border-hairline border-border bg-surface p-4 shadow-cyan sm:p-6"
+            onSubmit={handleSubmit}
+          >
             <div className="space-y-5">
               <div className="space-y-2">
                 <Label
@@ -81,6 +113,9 @@ export default function LoginPage() {
                   id="email"
                   placeholder="adres@email.pl"
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                 />
               </div>
               <div className="space-y-2">
@@ -95,13 +130,26 @@ export default function LoginPage() {
                   id="password"
                   placeholder="••••••••"
                   type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                 />
               </div>
+              {formError && (
+                <div className="rounded border border-red-500 bg-red-500/10 p-3 text-sm text-red-500">
+                  {formError}
+                </div>
+              )}
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <Button className="h-11 bg-cyan px-4 text-black hover:bg-cyan-dim">
+              <Button
+                className="h-11 bg-cyan px-4 text-black hover:bg-cyan-dim"
+                type="submit"
+                disabled={loading}
+              >
                 Zaloguj
+                {loading ? "Logowanie..." : "Zaloguj"}
                 <ArrowRight />
               </Button>
               <Link
