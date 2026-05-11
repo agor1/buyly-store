@@ -1,27 +1,11 @@
 import Link from "next/link";
 
 import type { Product } from "@/lib/products";
+import { formatPrice } from "@/lib/product-utils";
 
 interface ProductCardProps {
   product: Product;
 }
-
-const formatPrice = (price: string) => {
-  if (/[a-z]/i.test(price)) {
-    return price;
-  }
-
-  const value = Number(price);
-
-  if (Number.isNaN(value)) {
-    return price;
-  }
-
-  return new Intl.NumberFormat("pl-PL", {
-    currency: "PLN",
-    style: "currency",
-  }).format(value);
-};
 
 export default function ProductCard({ product }: ProductCardProps) {
   const category = product.category?.name ?? "Produkt";

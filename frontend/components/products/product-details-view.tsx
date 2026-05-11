@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { getProduct, type Product } from "@/lib/products";
+import { formatPrice, getStockLabel } from "@/lib/product-utils";
 
 interface ProductDetailsViewProps {
   slug: string;
@@ -38,31 +39,6 @@ const benefits = [
     text: "Produkt zabezpieczony na czas transportu.",
   },
 ];
-
-const formatPrice = (price: string) => {
-  if (/[a-z]/i.test(price)) {
-    return price;
-  }
-
-  const value = Number(price);
-
-  if (Number.isNaN(value)) {
-    return price;
-  }
-
-  return new Intl.NumberFormat("pl-PL", {
-    currency: "PLN",
-    style: "currency",
-  }).format(value);
-};
-
-const getStockLabel = (stock: number) => {
-  if (stock <= 0) {
-    return "Brak w magazynie";
-  }
-
-  return `${stock} szt.`;
-};
 
 export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
   const [product, setProduct] = useState<Product | null>(null);

@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import {
   getProduct,
   getProducts,
   addProduct,
   deleteProduct,
   updateProduct,
-} from "../services/products.service";
+} from "../services/product.service";
 
 // Get product controller
 export const getSingleProduct = async (req: Request, res: Response) => {
@@ -71,13 +71,13 @@ export const updateProductById = async (req: Request, res: Response) => {
   } catch (error) {
     if (error instanceof Error) {
       if (error.message === "PRODUCT_NOT_FOUND") {
-        res.status(404).json({ error: "Product not found" });
+        return res.status(404).json({ error: "Product not found" });
       } else if (error.message === "CATEGORY_NOT_FOUND") {
-        res.status(400).json({ error: "Invalid category" });
+        return res.status(400).json({ error: "Invalid category" });
       }
-    } else {
-      res.status(500).json({ error: "Failed to update product" });
     }
+
+    res.status(500).json({ error: "Failed to update product" });
   }
 };
 

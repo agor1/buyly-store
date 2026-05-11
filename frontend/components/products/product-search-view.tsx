@@ -5,10 +5,11 @@ import {
   MagnifyingGlass,
   SlidersHorizontal,
 } from "@phosphor-icons/react/dist/ssr";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Footer from "@/components/layout/footer";
-import ProductCard from "@/components/products/product-card";
+import CategoryFilter from "@/components/products/category-filter";
+import ProductList from "@/components/products/product-list";
 import SortMenu from "@/components/products/sort-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +26,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { getProducts, type Product } from "@/lib/products";
 import { getCategories, type Category } from "@/lib/categories";
+import { getProducts, type Product } from "@/lib/products";
 
 export default function ProductSearchView() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -34,17 +35,20 @@ export default function ProductSearchView() {
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [areCategoriesLoading, setAreCategoriesLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [productsError, setProductsError] = useState<string | null>(null);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
-  const filteredProducts =
-    selectedCategoryId === "all"
-      ? products
-      : products.filter(
-          (product) =>
-            product.category_id === selectedCategoryId ||
-            product.category?.id === selectedCategoryId,
-        );
+  const filteredProducts = useMemo(() => {
+    if (selectedCategoryId === "all") {
+      return products;
+    }
+
+    return products.filter(
+      (product) =>
+        product.category_id === selectedCategoryId ||
+        product.category?.id === selectedCategoryId,
+    );
+  }, [products, selectedCategoryId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -55,11 +59,11 @@ export default function ProductSearchView() {
 
         if (isMounted) {
           setProducts(data);
-          setError(null);
+          setProductsError(null);
         }
       } catch {
         if (isMounted) {
-          setError("Nie udalo sie pobrac produktow.");
+          setProductsError("Nie udalo sie pobrac produktow.");
         }
       } finally {
         if (isMounted) {
@@ -104,10 +108,10 @@ export default function ProductSearchView() {
               {"// produkty"}
             </p>
             <h1 className="mt-4 font-display text-4xl font-extrabold leading-none text-text-bright sm:text-5xl md:text-6xl">
-              Znajdź produkty.
+              Znajdz produkty.
             </h1>
             <p className="mt-5 max-w-2xl text-body text-muted-foreground">
-              Przeglądaj wyniki, zawężaj kategorie i szybko porównuj produkty w
+              Przegladaj wyniki, zawezaj kategorie i szybko porownuj produkty w
               marketplace Buyly.
             </p>
           </div>
@@ -138,56 +142,13 @@ export default function ProductSearchView() {
             </div>
 
             <div className="space-y-6">
-              <div>
-                <p className="mb-3 text-caption uppercase tracking-[0.12em] text-muted-foreground">
-                  Kategorie
-                </p>
-                <div className="flex flex-wrap gap-2 lg:flex-col">
-                  <button
-                    className={
-                      selectedCategoryId === "all"
-                        ? "border-hairline border-cyan bg-cyan-bg px-3 py-2 text-left text-caption uppercase tracking-[0.12em] text-cyan transition-colors"
-                        : "border-hairline border-border bg-base px-3 py-2 text-left text-caption uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:border-cyan hover:text-cyan"
-                    }
-                    onClick={() => setSelectedCategoryId("all")}
-                    type="button"
-                  >
-                    Wszystko
-                  </button>
-
-                  {areCategoriesLoading ? (
-                    <div className="grid gap-2">
-                      {[1, 2, 3].map((item) => (
-                        <div
-                          className="h-9 animate-pulse border-hairline border-border bg-base"
-                          key={item}
-                        />
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {!areCategoriesLoading && categoriesError ? (
-                    <p className="text-caption text-muted-foreground">
-                      {categoriesError}
-                    </p>
-                  ) : null}
-
-                  {!areCategoriesLoading && !categoriesError ? categories.map((category) => (
-                    <button
-                      className={
-                        selectedCategoryId === category.id
-                          ? "border-hairline border-cyan bg-cyan-bg px-3 py-2 text-left text-caption uppercase tracking-[0.12em] text-cyan transition-colors"
-                          : "border-hairline border-border bg-base px-3 py-2 text-left text-caption uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:border-cyan hover:text-cyan"
-                      }
-                      key={category.id}
-                      onClick={() => setSelectedCategoryId(category.id)}
-                      type="button"
-                    >
-                      {category.name}
-                    </button>
-                  )) : null}
-                </div>
-              </div>
+              <CategoryFilter
+                categories={categories}
+                error={categoriesError}
+                isLoading={areCategoriesLoading}
+                onSelectCategory={setSelectedCategoryId}
+                selectedCategoryId={selectedCategoryId}
+              />
 
               <div>
                 <p className="mb-3 text-caption uppercase tracking-[0.12em] text-muted-foreground">
@@ -225,47 +186,18 @@ export default function ProductSearchView() {
                 </p>
                 <p className="mt-1 text-caption text-muted-foreground">
                   {isProductsLoading
-                    ? "Ładowanie produktów..."
-                    : `${filteredProducts.length} produktów pasujących do wyszukiwania`}
+                    ? "Ladowanie produktow..."
+                    : `${filteredProducts.length} produktow pasujacych do wyszukiwania`}
                 </p>
               </div>
               <SortMenu />
             </div>
 
-            {error ? (
-              <div className="border-hairline border-border bg-surface p-6 text-body text-muted-foreground">
-                {error}
-              </div>
-            ) : null}
-
-            {!error && isProductsLoading ? (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {[1, 2, 3, 4, 5, 6].map((item) => (
-                  <div
-                    className="border-hairline border-border bg-surface p-3"
-                    key={item}
-                  >
-                    <div className="mb-4 aspect-[4/3] animate-pulse bg-elevated" />
-                    <div className="h-3 w-1/3 animate-pulse bg-border-strong" />
-                    <div className="mt-3 h-6 w-3/4 animate-pulse bg-border-strong" />
-                  </div>
-                ))}
-              </div>
-            ) : null}
-
-            {!error && !isProductsLoading && filteredProducts.length === 0 ? (
-              <div className="border-hairline border-border bg-surface p-6 text-body text-muted-foreground">
-                Brak produktów do wyświetlenia.
-              </div>
-            ) : null}
-
-            {!error && !isProductsLoading && filteredProducts.length > 0 ? (
-              <div className="relative z-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            ) : null}
+            <ProductList
+              error={productsError}
+              isLoading={isProductsLoading}
+              products={filteredProducts}
+            />
 
             <Pagination className="mt-6 border-hairline border-border bg-surface p-3">
               <PaginationContent className="flex-wrap gap-2">

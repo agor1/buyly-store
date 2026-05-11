@@ -25,7 +25,7 @@ export const getCategoryById = (id: string) => {
   return category;
 };
 
-export const checkIfCategoryExists = async (id: string) => {
+export const ensureCategoryExists = async (id: string) => {
   const category = getCategoryById(id);
 
   const existingCategory = await prisma.category.findUnique({

@@ -1,8 +1,7 @@
 import { prisma } from "../lib/prisma";
-import { checkIfCategoryExists } from "./category.service";
+import { ensureCategoryExists } from "./category.service";
 import { ProductData } from "../types/product.types";
 
-// GET single product
 export const getProduct = async (slug: string) => {
   const product = await prisma.product.findUnique({
     where: { slug },
@@ -18,22 +17,19 @@ export const getProduct = async (slug: string) => {
   return product;
 };
 
-// GET all products
 export const getProducts = async () => {
-  return await prisma.product.findMany({
+  return prisma.product.findMany({
     include: {
       category: true,
     },
   });
 };
 
-// CREATE new product
 export const addProduct = async (data: ProductData) => {
   const { name, slug, description, price, categoryId } = data;
+  const category = await ensureCategoryExists(categoryId);
 
-  const category = await checkIfCategoryExists(categoryId);
-
-  const newProduct = await prisma.product.create({
+  return prisma.product.create({
     data: {
       name,
       slug,
@@ -45,11 +41,8 @@ export const addProduct = async (data: ProductData) => {
       category: true,
     },
   });
-
-  return newProduct;
 };
 
-// UPDATE product
 export const updateProduct = async (id: string, data: ProductData) => {
   const { name, slug, description, price, categoryId } = data;
 
@@ -58,9 +51,9 @@ export const updateProduct = async (id: string, data: ProductData) => {
     throw new Error("PRODUCT_NOT_FOUND");
   }
 
-  const category = await checkIfCategoryExists(categoryId);
+  const category = await ensureCategoryExists(categoryId);
 
-  const newProduct = await prisma.product.update({
+  return prisma.product.update({
     where: { id },
     data: {
       name,
@@ -73,11 +66,8 @@ export const updateProduct = async (id: string, data: ProductData) => {
       category: true,
     },
   });
-
-  return newProduct;
 };
 
-// DELETE product
 export const deleteProduct = async (id: string) => {
   const product = await prisma.product.findUnique({ where: { id } });
 
