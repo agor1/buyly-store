@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import Link from "next/link";
 
@@ -13,13 +14,20 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { List, MagnifyingGlass, SignIn, UserPlus } from "@phosphor-icons/react";
+import {
+  List,
+  MagnifyingGlass,
+  SignIn,
+  SignOut,
+  UserPlus,
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { useAuth } from "@/app/hooks/useAuth";
 import { useAuthStore } from "@/lib/auth-store";
 
 const navLinks = [
@@ -39,7 +47,15 @@ const navLinks = [
 
 export default function Navbar() {
   const { user } = useAuthStore();
+  const { logout, loading } = useAuth();
+  const router = useRouter();
   const isAuthenticated = !!user;
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+    router.refresh();
+  };
 
   return (
     <nav className="sticky top-0 z-40 flex h-16 w-full items-center justify-between gap-3 border-b border-border bg-base/90 px-4 text-white backdrop-blur sm:px-6">
@@ -82,7 +98,7 @@ export default function Navbar() {
         <Drawer direction="right">
           <DrawerTrigger asChild>
             <Button
-              aria-label="Otworz menu"
+              aria-label="Otwórz menu"
               className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
               size="icon"
               variant="outline"
@@ -127,7 +143,19 @@ export default function Navbar() {
               ))}
             </div>
             <DrawerFooter className="gap-3">
-              {!isAuthenticated && (
+              {isAuthenticated ? (
+                <DrawerClose asChild>
+                  <Button
+                    onClick={handleLogout}
+                    disabled={loading}
+                    variant="outline"
+                    className="w-full border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                  >
+                    Wyloguj się
+                    <SignOut />
+                  </Button>
+                </DrawerClose>
+              ) : (
                 <>
                   <DrawerClose asChild>
                     <Button
@@ -177,7 +205,17 @@ export default function Navbar() {
             </Link>
           ))}
         </div>
-        {!isAuthenticated && (
+        {isAuthenticated ? (
+          <Button
+            onClick={handleLogout}
+            disabled={loading}
+            variant="outline"
+            className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
+          >
+            Wyloguj się
+            <SignOut />
+          </Button>
+        ) : (
           <div className="ml-2 flex items-center gap-2">
             <Button
               asChild

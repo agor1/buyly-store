@@ -70,7 +70,10 @@ export const loginUser = async (data: LoginData) => {
 };
 
 // Change user role (only admin)
-export const changeUserRole = async (userId: string, role: "ADMIN" | "CUSTOMER") => {
+export const changeUserRole = async (
+  userId: string,
+  role: "ADMIN" | "CUSTOMER",
+) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     throw new Error("USER_NOT_FOUND");

@@ -59,6 +59,17 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// Logout controller
+export const logout = async (req: Request, res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+
+  res.json({ message: "Logged out successfully" });
+};
+
 // Change user role controller (admin only)
 export const updateUserRole = async (req: AuthRequest, res: Response) => {
   try {
