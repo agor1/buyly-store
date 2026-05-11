@@ -5,7 +5,7 @@ import {
   addProduct,
   deleteProduct,
   updateProduct,
-} from "../services/product.service";
+} from "../services/product.service.js";
 
 // Get product controller
 export const getSingleProduct = async (req: Request, res: Response) => {

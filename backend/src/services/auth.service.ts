@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "../lib/prisma";
+import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcryptjs";
+import { env } from "../config/env.js";
 
 interface RegisterData {
   email: string;
@@ -36,8 +37,8 @@ export const registerUser = async (data: RegisterData) => {
       userId: user.id,
       role: user.role,
     },
-    (process.env.JWT_SECRET as string) || "default-secret-key",
-    { expiresIn: process.env.JWT_EXPIRES_IN } as any,
+    env.JWT_SECRET,
+    { expiresIn: env.JWT_EXPIRES_IN },
   );
 
   return { user, token };
@@ -62,8 +63,8 @@ export const loginUser = async (data: LoginData) => {
       userId: user.id,
       role: user.role,
     },
-    (process.env.JWT_SECRET as string) || "default-secret-key",
-    { expiresIn: process.env.JWT_EXPIRES_IN } as any,
+    env.JWT_SECRET,
+    { expiresIn: env.JWT_EXPIRES_IN },
   );
 
   return { user, token };

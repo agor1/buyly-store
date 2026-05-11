@@ -4,8 +4,8 @@ import {
   loginUser,
   changeUserRole,
   getMe,
-} from "../services/auth.service";
-import { AuthRequest } from "../types/authRequest";
+} from "../services/auth.service.js";
+import { AuthRequest } from "../types/authRequest.js";
 
 // Register controller
 export const register = async (req: Request, res: Response) => {

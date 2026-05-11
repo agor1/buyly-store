@@ -4,14 +4,14 @@ import {
   getAllOrders,
   getUserOrders,
   updateOrder,
-} from "../controllers/order.controller";
-import { roleMiddleware } from "../middleware/role.middleware";
-import { authMiddleware } from "../middleware/auth.middleware";
-import { validateRequest } from "../middleware/validation.middleware";
+} from "../controllers/order.controller.js";
+import { roleMiddleware } from "../middleware/role.middleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
+import { validateRequest } from "../middleware/validation.middleware.js";
 import {
   createOrderSchema,
   updateOrderStatusSchema,
-} from "../schemas/order.schema";
+} from "../schemas/order.schema.js";
 
 const router: Router = Router();
 

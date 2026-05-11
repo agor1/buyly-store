@@ -67,9 +67,6 @@ export default function ProfileSettingsPage() {
                   Preferencje konta, takie jak: motyw strony i tryb motywu
                 </p>
               </div>
-              <Button type="button" className="bg-cyan text-black">
-                Zapisz ustawienia
-              </Button>
             </div>
           </header>
 

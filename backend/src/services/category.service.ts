@@ -1,5 +1,5 @@
-import { prisma } from "../lib/prisma";
-import { STATIC_CATEGORIES } from "../constants/categories";
+import { prisma } from "../lib/prisma.js";
+import { STATIC_CATEGORIES } from "../constants/categories.js";
 
 export const getCategories = async () => {
   return STATIC_CATEGORIES;

@@ -101,7 +101,6 @@ export default function ProfilePage() {
                     id="profile-name"
                     value={user?.name || ""}
                     placeholder="Twoja nazwa"
-                    readOnly
                     className="border-border bg-base text-text-bright"
                   />
                 </div>
@@ -111,7 +110,6 @@ export default function ProfilePage() {
                     id="profile-email"
                     value={user?.email || ""}
                     placeholder="adres@email.pl"
-                    readOnly
                     className="border-border bg-base text-text-bright"
                   />
                 </div>
@@ -120,7 +118,6 @@ export default function ProfilePage() {
                   <Input
                     id="profile-phone"
                     placeholder="+48 000 000 000"
-                    readOnly
                     className="border-border bg-base text-text-bright"
                   />
                 </div>
@@ -129,7 +126,6 @@ export default function ProfilePage() {
                   <Textarea
                     id="profile-address"
                     placeholder="Ulica, kod pocztowy, miasto"
-                    readOnly
                     className="min-h-24 border-border bg-base text-text-bright"
                   />
                 </div>
@@ -165,7 +161,6 @@ export default function ProfilePage() {
                     <Input
                       id="current-password"
                       type="password"
-                      readOnly
                       className="border-border bg-base text-text-bright"
                     />
                   </div>
@@ -174,7 +169,6 @@ export default function ProfilePage() {
                     <Input
                       id="new-password"
                       type="password"
-                      readOnly
                       className="border-border bg-base text-text-bright"
                     />
                   </div>

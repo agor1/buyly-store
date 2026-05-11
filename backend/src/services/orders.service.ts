@@ -1,5 +1,5 @@
-import { prisma } from "../lib/prisma";
-import { OrderData, OrderStatus } from "../types/order.types";
+import { prisma } from "../lib/prisma.js";
+import { OrderData, OrderStatus } from "../types/order.types.js";
 
 // GET all orders with user and product details
 export const getOrders = async () => {

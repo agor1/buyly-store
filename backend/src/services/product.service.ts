@@ -1,6 +1,6 @@
-import { prisma } from "../lib/prisma";
-import { ensureCategoryExists } from "./category.service";
-import { ProductData } from "../types/product.types";
+import { prisma } from "../lib/prisma.js";
+import { ensureCategoryExists } from "./category.service.js";
+import { ProductData } from "../types/product.types.js";
 
 export const getProduct = async (slug: string) => {
   const product = await prisma.product.findUnique({

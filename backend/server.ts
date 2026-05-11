@@ -1,7 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import "dotenv/config";
-import { prisma } from "./src/lib/prisma";
+import { prisma } from "./src/lib/prisma.js";
 import authRoutes from "./src/routes/auth.routes.js";
 import categoryRoutes from "./src/routes/category.routes.js";
 import productRoutes from "./src/routes/product.routes.js";

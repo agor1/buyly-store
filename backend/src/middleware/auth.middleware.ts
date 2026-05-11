@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { AuthRequest } from "../types/authRequest";
+import { env } from "../config/env.js";
+import { AuthRequest } from "../types/authRequest.js";
 
 export const authMiddleware = (
   req: AuthRequest,
@@ -15,10 +16,7 @@ export const authMiddleware = (
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "default-secret-key",
-    ) as {
+    const decoded = jwt.verify(token, env.JWT_SECRET) as {
       userId: string;
       role: "CUSTOMER" | "ADMIN";
     };

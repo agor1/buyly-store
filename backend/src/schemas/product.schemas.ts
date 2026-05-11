@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { STATIC_CATEGORY_IDS } from "../constants/categories";
+import { STATIC_CATEGORY_IDS } from "../constants/categories.js";
 
 export const createProductSchema = z.object({
   name: z

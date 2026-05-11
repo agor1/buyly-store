@@ -3,9 +3,9 @@ import {
   createOrder,
   updateOrderStatus,
   getMyOrders,
-} from "../services/orders.service";
+} from "../services/orders.service.js";
 import { Request, Response } from "express";
-import { AuthRequest } from "../types/authRequest";
+import { AuthRequest } from "../types/authRequest.js";
 
 // Get all orders controller
 export const getAllOrders = async (req: Request, res: Response) => {
@@ -18,11 +18,19 @@ export const getAllOrders = async (req: Request, res: Response) => {
 };
 
 // Create order controller
-export const createNewOrder = async (req: Request, res: Response) => {
+export const createNewOrder = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, items } = req.body;
-    const shippingAddress = req.body.shippingAddress;
-    const order = await createOrder({ userId, shippingAddress, items });
+    if (!req.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const { items, shippingAddress } = req.body;
+    const order = await createOrder({
+      userId: req.userId,
+      shippingAddress,
+      items,
+    });
+
     res.status(201).json(order);
   } catch (error) {
     res.status(500).json({ error: "Failed to create order" });
