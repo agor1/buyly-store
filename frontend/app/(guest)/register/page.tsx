@@ -43,7 +43,7 @@ export default function RegisterPage() {
       await register({ email, password, name });
 
       router.push("/");
-    } catch (err) {
+    } catch {
       setFormError(error || "Rejestracja nie powiodła się");
     }
   };
@@ -134,6 +134,11 @@ export default function RegisterPage() {
                 />
               </div>
             </div>
+            {formError && (
+              <div className="mt-5 rounded border border-red-500 bg-red-500/10 p-3 text-sm text-red-500">
+                {formError}
+              </div>
+            )}
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Button

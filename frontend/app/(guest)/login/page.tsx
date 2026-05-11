@@ -27,10 +27,10 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/");
     try {
       await login({ email, password });
-    } catch (err) {
+      router.push("/");
+    } catch {
       setFormError(error || "Logowanie nie powiodło się");
     }
   };
@@ -148,7 +148,6 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
               >
-                Zaloguj
                 {loading ? "Logowanie..." : "Zaloguj"}
                 <ArrowRight />
               </Button>

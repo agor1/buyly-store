@@ -21,6 +21,7 @@ export const register = async (req: Request, res: Response) => {
 
     res.json({
       user: { id: user.id, email: user.email },
+      token,
     });
   } catch (error) {
     if (error instanceof Error && error.message === "EMAIL_EXISTS") {
@@ -47,6 +48,7 @@ export const login = async (req: Request, res: Response) => {
 
     res.json({
       user: { id: user.id, email: user.email },
+      token,
     });
   } catch (error) {
     if (error instanceof Error && error.message === "INVALID_CREDENTIALS") {

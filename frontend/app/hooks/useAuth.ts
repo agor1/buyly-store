@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import * as authService from "@/lib/auth";
 import axios from "axios";
+import { useAuthStore } from "@/lib/auth-store";
 
 export const useAuth = () => {
-  const [user, setUser] = useState<authService.User | null>(null);
+  const { user, token, setSession, clearSession } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,9 +15,9 @@ export const useAuth = () => {
     setLoading(true);
     setError(null);
     try {
-      const userData = await authService.login(payload);
-      setUser(userData);
-      return userData;
+      const session = await authService.login(payload);
+      setSession(session);
+      return session.user;
     } catch (err) {
       const errorMessage =
         axios.isAxiosError(err) && err.response?.data?.error
@@ -27,7 +28,7 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setSession]);
 
   // Register
   const register = useCallback(async (payload: authService.RegisterPayload) => {
@@ -35,9 +36,9 @@ export const useAuth = () => {
     setError(null);
 
     try {
-      const userData = await authService.register(payload);
-      setUser(userData);
-      return userData;
+      const session = await authService.register(payload);
+      setSession(session);
+      return session.user;
     } catch (err) {
       const errorMessage =
         axios.isAxiosError(err) && err.response?.data?.error
@@ -48,7 +49,7 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setSession]);
 
   // Logout
   const logout = useCallback(async () => {
@@ -57,7 +58,7 @@ export const useAuth = () => {
 
     try {
       await authService.logout();
-      setUser(null);
+      clearSession();
     } catch (err) {
       const errorMessage =
         axios.isAxiosError(err) && err.response?.data?.error
@@ -67,7 +68,7 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [clearSession]);
 
   // Get me
   const getMe = useCallback(async () => {
@@ -77,16 +78,16 @@ export const useAuth = () => {
     try {
       const userData = await authService.getCurrentUser();
       if (userData) {
-        setUser(userData);
+        setSession({ user: userData, token });
       }
       return userData;
-    } catch (err) {
+    } catch {
       setError(null);
       return null;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setSession, token]);
 
   return {
     user,
@@ -97,5 +98,6 @@ export const useAuth = () => {
     logout,
     getMe,
     isAuthenticated: !!user,
+    token,
   };
 };

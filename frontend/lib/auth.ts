@@ -9,6 +9,7 @@ export interface User {
 
 export interface AuthResponse {
   user: User;
+  token: string;
 }
 
 export interface LoginPayload {
@@ -20,21 +21,28 @@ export interface RegisterPayload extends LoginPayload {
   name: string;
 }
 
+export interface AuthSession {
+  user: User;
+  token: string;
+}
+
 // Login function
-export const login = async (payload: LoginPayload): Promise<User> => {
+export const login = async (payload: LoginPayload): Promise<AuthSession> => {
   try {
     const response = await api.post<AuthResponse>("/auth/login", payload);
-    return response.data.user;
+    return response.data;
   } catch (error) {
     throw error;
   }
 };
 
 // Register function
-export const register = async (payload: registerPayload): Promise<User> => {
+export const register = async (
+  payload: RegisterPayload,
+): Promise<AuthSession> => {
   try {
     const response = await api.post<AuthResponse>("/auth/register", payload);
-    return response.data.user;
+    return response.data;
   } catch (error) {
     throw error;
   }

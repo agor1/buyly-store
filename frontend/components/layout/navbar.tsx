@@ -20,6 +20,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { useAuthStore } from "@/lib/auth-store";
 
 const navLinks = [
   {
@@ -37,6 +38,9 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const { user } = useAuthStore();
+  const isAuthenticated = !!user;
+
   return (
     <nav className="sticky top-0 z-40 flex h-16 w-full items-center justify-between gap-3 border-b border-border bg-base/90 px-4 text-white backdrop-blur sm:px-6">
       <Link
@@ -123,26 +127,30 @@ export default function Navbar() {
               ))}
             </div>
             <DrawerFooter className="gap-3">
-              <DrawerClose asChild>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="w-full border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
-                >
-                  <Link href="/login">
-                    Logowanie
-                    <SignIn />
-                  </Link>
-                </Button>
-              </DrawerClose>
-              <DrawerClose asChild>
-                <Button asChild className="w-full bg-cyan text-black">
-                  <Link href="/register">
-                    Rejestracja
-                    <UserPlus />
-                  </Link>
-                </Button>
-              </DrawerClose>
+              {!isAuthenticated && (
+                <>
+                  <DrawerClose asChild>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                    >
+                      <Link href="/login">
+                        Logowanie
+                        <SignIn />
+                      </Link>
+                    </Button>
+                  </DrawerClose>
+                  <DrawerClose asChild>
+                    <Button asChild className="w-full bg-cyan text-black">
+                      <Link href="/register">
+                        Rejestracja
+                        <UserPlus />
+                      </Link>
+                    </Button>
+                  </DrawerClose>
+                </>
+              )}
               <DrawerClose asChild>
                 <Button
                   variant="outline"
@@ -169,24 +177,26 @@ export default function Navbar() {
             </Link>
           ))}
         </div>
-        <div className="ml-2 flex items-center gap-2">
-          <Button
-            asChild
-            variant="outline"
-            className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
-          >
-            <Link href="/login">
-              Logowanie
-              <SignIn />
-            </Link>
-          </Button>
-          <Button asChild className="bg-cyan text-black hover:bg-cyan-dim">
-            <Link href="/register">
-              Rejestracja
-              <UserPlus />
-            </Link>
-          </Button>
-        </div>
+        {!isAuthenticated && (
+          <div className="ml-2 flex items-center gap-2">
+            <Button
+              asChild
+              variant="outline"
+              className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
+            >
+              <Link href="/login">
+                Logowanie
+                <SignIn />
+              </Link>
+            </Button>
+            <Button asChild className="bg-cyan text-black hover:bg-cyan-dim">
+              <Link href="/register">
+                Rejestracja
+                <UserPlus />
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </nav>
   );
