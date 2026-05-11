@@ -68,7 +68,12 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-40 flex h-16 w-full items-center justify-between gap-3 border-b border-border bg-base/90 px-4 text-white backdrop-blur sm:px-6">
+    <motion.nav
+      animate={{ opacity: 1, y: 0 }}
+      className="sticky top-0 z-40 flex h-16 w-full items-center justify-between gap-3 border-b border-border bg-base/90 px-4 text-white backdrop-blur sm:px-6"
+      initial={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+    >
       <Link
         href="/"
         className="inline-flex shrink-0 items-center font-display text-xl font-extrabold tracking-normal text-text-bright"
@@ -251,14 +256,19 @@ export default function Navbar() {
       <div className="hidden shrink-0 items-center gap-6 text-muted-foreground xl:flex">
         <div className="flex items-center gap-6">
           {navLinks.map((link) => (
-            <Link
-              href={link.href}
+            <motion.div
               key={link.href}
-              className="hover:text-cyan hover:underline underline-offset-4"
+              whileHover={{ y: -2 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
             >
-              {"// "}
-              {link.label}
-            </Link>
+              <Link
+              href={link.href}
+              className="hover:text-cyan hover:underline underline-offset-4"
+              >
+                {"// "}
+                {link.label}
+              </Link>
+            </motion.div>
           ))}
         </div>
         {isAuthenticated ? (
@@ -321,6 +331,6 @@ export default function Navbar() {
           </div>
         )}
       </div>
-    </nav>
+    </motion.nav>
   );
 }

@@ -6,6 +6,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 
 import Footer from "@/components/layout/footer";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -66,7 +67,7 @@ export default function Home() {
   return (
     <main className="scanlines flex-1 overflow-x-hidden bg-base text-text">
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-4 py-10 sm:px-6 md:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-10">
-        <div className="max-w-2xl">
+        <Reveal className="max-w-2xl">
           <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
             {"// marketplace online"}
           </p>
@@ -89,9 +90,12 @@ export default function Home() {
               Kategorie
             </Button>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="min-w-0 border-hairline border-border bg-surface p-3 shadow-cyan sm:p-4">
+        <Reveal
+          className="min-w-0 border-hairline border-border bg-surface p-3 shadow-cyan sm:p-4"
+          delay={0.08}
+        >
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
             <span className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
               {"// dzisiejsza oferta"}
@@ -135,21 +139,22 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <section className="border-y border-border bg-surface">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-px px-4 py-8 sm:grid-cols-2 sm:px-6 md:grid-cols-4 lg:px-10">
-          {collections.map((collection) => (
-            <div
+          {collections.map((collection, index) => (
+            <Reveal
               className="border-hairline border-border bg-base px-4 py-6 hover:border-cyan cursor-pointer transition-colors"
+              delay={index * 0.02}
               key={collection}
             >
               <p className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
                 {"// "}
                 {collection}
               </p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -171,12 +176,13 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
-            <article
+            <StaggerItem
               className="group border-hairline border-border bg-surface p-3 transition-colors hover:border-cyan"
               key={product.name}
             >
+              <article>
               <div className="relative mb-4 flex aspect-[4/3] items-center justify-center overflow-hidden bg-elevated">
                 <div className="absolute left-3 top-3 border-hairline border-cyan bg-cyan-bg px-2 py-1 font-mono text-label font-bold text-cyan">
                   {product.tag}
@@ -198,9 +204,10 @@ export default function Home() {
                   {product.price}
                 </p>
               </div>
-            </article>
+              </article>
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-4 px-4 pb-14 sm:px-6 md:grid-cols-3 md:pb-16 lg:px-10">
@@ -208,7 +215,7 @@ export default function Home() {
           const Icon = benefit.icon;
 
           return (
-            <div
+            <Reveal
               className="border-hairline border-border bg-surface p-5"
               key={benefit.title}
             >
@@ -219,7 +226,7 @@ export default function Home() {
               <p className="mt-2 text-body text-muted-foreground">
                 {benefit.text}
               </p>
-            </div>
+            </Reveal>
           );
         })}
       </section>

@@ -11,6 +11,7 @@ import {
   Truck,
 } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import Footer from "@/components/layout/footer";
@@ -114,8 +115,17 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
         ) : null}
 
         {product ? (
-          <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-            <section className="border-hairline border-border bg-surface p-3 shadow-cyan sm:p-4">
+          <motion.div
+            animate={{ opacity: 1, y: 0 }}
+            className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start"
+            initial={{ opacity: 0, y: 18 }}
+            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <motion.section
+              className="border-hairline border-border bg-surface p-3 shadow-cyan sm:p-4"
+              whileHover={{ y: -3 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
               <div className="relative flex aspect-square min-h-[320px] items-center justify-center overflow-hidden bg-elevated">
                 <span className="absolute left-4 top-4 border-hairline border-cyan bg-cyan-bg px-2 py-1 font-mono text-label font-bold uppercase tracking-[0.12em] text-cyan">
                   {category}
@@ -131,7 +141,7 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
                 </div>
                 <div className="absolute bottom-6 h-2 w-2/3 bg-border-strong" />
               </div>
-            </section>
+            </motion.section>
 
             <section className="min-w-0">
               <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
@@ -206,7 +216,7 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
                 </Button>
               </div>
             </section>
-          </div>
+          </motion.div>
         ) : null}
       </section>
 

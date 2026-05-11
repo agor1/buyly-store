@@ -1,4 +1,5 @@
 import ProductCard from "@/components/products/product-card";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import type { Product } from "@/lib/products";
 
 interface ProductListProps {
@@ -46,10 +47,12 @@ export default function ProductList({
   }
 
   return (
-    <div className="relative z-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <Stagger className="relative z-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <StaggerItem key={product.id}>
+          <ProductCard product={product} />
+        </StaggerItem>
       ))}
-    </div>
+    </Stagger>
   );
 }

@@ -1,6 +1,16 @@
+"use client";
+
+import { motion } from "motion/react";
+
 export default function Footer() {
   return (
-    <footer className="border-t border-border bg-surface">
+    <motion.footer
+      className="border-t border-border bg-surface"
+      initial={{ opacity: 0, y: 18 }}
+      transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true }}
+      whileInView={{ opacity: 1, y: 0 }}
+    >
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-10">
         <div>
           <p className="font-display text-xl font-extrabold text-text-bright">
@@ -16,6 +26,6 @@ export default function Footer() {
           <span>Privacy</span>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 }

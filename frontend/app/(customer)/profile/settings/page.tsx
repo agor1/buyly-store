@@ -5,7 +5,6 @@ import { Desktop, Moon, Sun } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import { useAuthStore } from "@/lib/auth-store";
