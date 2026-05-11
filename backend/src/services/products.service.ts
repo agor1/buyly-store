@@ -1,9 +1,15 @@
 import { prisma } from "../lib/prisma";
+import { checkIfCategoryExists } from "./category.service";
 import { ProductData } from "../types/product.types";
 
 // GET single product
 export const getProduct = async (slug: string) => {
-  const product = await prisma.product.findUnique({ where: { slug } });
+  const product = await prisma.product.findUnique({
+    where: { slug },
+    include: {
+      category: true,
+    },
+  });
 
   if (!product) {
     throw new Error("PRODUCT_NOT_FOUND");
@@ -14,20 +20,18 @@ export const getProduct = async (slug: string) => {
 
 // GET all products
 export const getProducts = async () => {
-  return await prisma.product.findMany();
+  return await prisma.product.findMany({
+    include: {
+      category: true,
+    },
+  });
 };
 
 // CREATE new product
 export const addProduct = async (data: ProductData) => {
   const { name, slug, description, price, categoryId } = data;
 
-  const category = await prisma.category.findUnique({
-    where: { id: categoryId },
-  });
-
-  if (!category) {
-    throw new Error("CATEGORY_NOT_FOUND");
-  }
+  const category = await checkIfCategoryExists(categoryId);
 
   const newProduct = await prisma.product.create({
     data: {
@@ -35,7 +39,7 @@ export const addProduct = async (data: ProductData) => {
       slug,
       description: description || "",
       price: price || 0,
-      category_id: categoryId,
+      category_id: category.id,
     },
     include: {
       category: true,
@@ -54,12 +58,7 @@ export const updateProduct = async (id: string, data: ProductData) => {
     throw new Error("PRODUCT_NOT_FOUND");
   }
 
-  const category = await prisma.category.findUnique({
-    where: { id: categoryId },
-  });
-  if (!category) {
-    throw new Error("CATEGORY_NOT_FOUND");
-  }
+  const category = await checkIfCategoryExists(categoryId);
 
   const newProduct = await prisma.product.update({
     where: { id },
@@ -68,7 +67,7 @@ export const updateProduct = async (id: string, data: ProductData) => {
       slug,
       description: description || "",
       price: price || 0,
-      category_id: categoryId,
+      category_id: category.id,
     },
     include: {
       category: true,

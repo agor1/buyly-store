@@ -1,10 +1,14 @@
+"use client";
+
 import {
   Funnel,
   MagnifyingGlass,
   SlidersHorizontal,
 } from "@phosphor-icons/react/dist/ssr";
+import { useEffect, useState } from "react";
 
 import Footer from "@/components/layout/footer";
+import ProductCard from "@/components/products/product-card";
 import SortMenu from "@/components/products/sort-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,62 +25,76 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-
-const products = [
-  {
-    brand: "sony",
-    name: "Wireless Headphones",
-    price: "349 PLN",
-    tag: "AUDIO",
-    color: "bg-cyan",
-  },
-  {
-    brand: "philips",
-    name: "Smart LED Starter Kit",
-    price: "199 PLN",
-    tag: "HOME",
-    color: "bg-green",
-  },
-  {
-    brand: "lego",
-    name: "Creator Space Rover",
-    price: "249 PLN",
-    tag: "TOYS",
-    color: "bg-amber",
-  },
-  {
-    brand: "logitech",
-    name: "Mechanical Keyboard",
-    price: "429 PLN",
-    tag: "GAMING",
-    color: "bg-cyan",
-  },
-  {
-    brand: "samsung",
-    name: "Portable SSD 1TB",
-    price: "399 PLN",
-    tag: "TECH",
-    color: "bg-green",
-  },
-  {
-    brand: "anker",
-    name: "Power Bank 20K",
-    price: "189 PLN",
-    tag: "MOBILE",
-    color: "bg-amber",
-  },
-];
-
-const categories = [
-  "Wszystko",
-  "Elektronika",
-  "Dom",
-  "Gaming",
-  "Zabawki",
-  "Sport",
-];
+import { getProducts, type Product } from "@/lib/products";
+import { getCategories, type Category } from "@/lib/categories";
 
 export default function ProductSearchView() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
+  const [isProductsLoading, setIsProductsLoading] = useState(true);
+  const [areCategoriesLoading, setAreCategoriesLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+
+  const filteredProducts =
+    selectedCategoryId === "all"
+      ? products
+      : products.filter(
+          (product) =>
+            product.category_id === selectedCategoryId ||
+            product.category?.id === selectedCategoryId,
+        );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProducts = async () => {
+      try {
+        const data = await getProducts();
+
+        if (isMounted) {
+          setProducts(data);
+          setError(null);
+        }
+      } catch {
+        if (isMounted) {
+          setError("Nie udalo sie pobrac produktow.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsProductsLoading(false);
+        }
+      }
+    };
+
+    const loadCategories = async () => {
+      try {
+        const data = await getCategories();
+
+        if (isMounted) {
+          setCategories(data);
+          setCategoriesError(null);
+        }
+      } catch {
+        if (isMounted) {
+          setCategoriesError("Nie udalo sie pobrac kategorii.");
+        }
+      } finally {
+        if (isMounted) {
+          setAreCategoriesLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+    loadCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <main className="scanlines flex-1 overflow-x-hidden bg-base text-text">
       <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-12 lg:px-10">
@@ -125,15 +143,49 @@ export default function ProductSearchView() {
                   Kategorie
                 </p>
                 <div className="flex flex-wrap gap-2 lg:flex-col">
-                  {categories.map((category) => (
+                  <button
+                    className={
+                      selectedCategoryId === "all"
+                        ? "border-hairline border-cyan bg-cyan-bg px-3 py-2 text-left text-caption uppercase tracking-[0.12em] text-cyan transition-colors"
+                        : "border-hairline border-border bg-base px-3 py-2 text-left text-caption uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:border-cyan hover:text-cyan"
+                    }
+                    onClick={() => setSelectedCategoryId("all")}
+                    type="button"
+                  >
+                    Wszystko
+                  </button>
+
+                  {areCategoriesLoading ? (
+                    <div className="grid gap-2">
+                      {[1, 2, 3].map((item) => (
+                        <div
+                          className="h-9 animate-pulse border-hairline border-border bg-base"
+                          key={item}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {!areCategoriesLoading && categoriesError ? (
+                    <p className="text-caption text-muted-foreground">
+                      {categoriesError}
+                    </p>
+                  ) : null}
+
+                  {!areCategoriesLoading && !categoriesError ? categories.map((category) => (
                     <button
-                      className="border-hairline border-border bg-base px-3 py-2 text-left text-caption uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:border-cyan hover:text-cyan"
-                      key={category}
+                      className={
+                        selectedCategoryId === category.id
+                          ? "border-hairline border-cyan bg-cyan-bg px-3 py-2 text-left text-caption uppercase tracking-[0.12em] text-cyan transition-colors"
+                          : "border-hairline border-border bg-base px-3 py-2 text-left text-caption uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:border-cyan hover:text-cyan"
+                      }
+                      key={category.id}
+                      onClick={() => setSelectedCategoryId(category.id)}
                       type="button"
                     >
-                      {category}
+                      {category.name}
                     </button>
-                  ))}
+                  )) : null}
                 </div>
               </div>
 
@@ -172,42 +224,48 @@ export default function ProductSearchView() {
                   {"// wyniki"}
                 </p>
                 <p className="mt-1 text-caption text-muted-foreground">
-                  6 produktow pasujacych do zapytania
+                  {isProductsLoading
+                    ? "Ładowanie produktów..."
+                    : `${filteredProducts.length} produktów pasujących do wyszukiwania`}
                 </p>
               </div>
               <SortMenu />
             </div>
 
-            <div className="relative z-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {products.map((product) => (
-                <article
-                  className="group border-hairline border-border bg-surface p-3 transition-colors hover:border-cyan"
-                  key={product.name}
-                >
-                  <div className="relative mb-4 flex aspect-[4/3] items-center justify-center overflow-hidden bg-elevated">
-                    <div className="absolute left-3 top-3 border-hairline border-cyan bg-cyan-bg px-2 py-1 font-mono text-label font-bold text-cyan">
-                      {product.tag}
-                    </div>
-                    <div
-                      className={`h-20 w-20 ${product.color} opacity-80 transition-transform group-hover:scale-110 sm:h-24 sm:w-24`}
-                    />
-                    <div className="absolute bottom-5 h-2 w-2/3 bg-border-strong" />
+            {error ? (
+              <div className="border-hairline border-border bg-surface p-6 text-body text-muted-foreground">
+                {error}
+              </div>
+            ) : null}
+
+            {!error && isProductsLoading ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((item) => (
+                  <div
+                    className="border-hairline border-border bg-surface p-3"
+                    key={item}
+                  >
+                    <div className="mb-4 aspect-[4/3] animate-pulse bg-elevated" />
+                    <div className="h-3 w-1/3 animate-pulse bg-border-strong" />
+                    <div className="mt-3 h-6 w-3/4 animate-pulse bg-border-strong" />
                   </div>
-                  <p className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
-                    {"// "}
-                    {product.brand}
-                  </p>
-                  <div className="mt-2 flex items-end justify-between gap-4">
-                    <h2 className="font-display text-xl font-bold leading-tight text-text-bright">
-                      {product.name}
-                    </h2>
-                    <p className="shrink-0 font-mono text-price font-bold text-cyan">
-                      {product.price}
-                    </p>
-                  </div>
-                </article>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : null}
+
+            {!error && !isProductsLoading && filteredProducts.length === 0 ? (
+              <div className="border-hairline border-border bg-surface p-6 text-body text-muted-foreground">
+                Brak produktów do wyświetlenia.
+              </div>
+            ) : null}
+
+            {!error && !isProductsLoading && filteredProducts.length > 0 ? (
+              <div className="relative z-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : null}
 
             <Pagination className="mt-6 border-hairline border-border bg-surface p-3">
               <PaginationContent className="flex-wrap gap-2">

@@ -13,7 +13,7 @@ import { validateRequest } from "../middleware/validation.middleware.js";
 
 const router: Router = Router();
 
-router.get("/:id", getSingleProduct);
+router.get("/:slug", getSingleProduct);
 router.get("/", getAllProducts);
 router.post(
   "/",

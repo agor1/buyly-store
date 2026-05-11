@@ -3,6 +3,7 @@ import cors from "cors";
 import "dotenv/config";
 import { prisma } from "./src/lib/prisma";
 import authRoutes from "./src/routes/auth.routes.js";
+import categoryRoutes from "./src/routes/category.routes.js";
 import productRoutes from "./src/routes/product.routes.js";
 import ordersRoutes from "./src/routes/order.routes.js";
 import { authMiddleware } from "./src/middleware/auth.middleware.js";
@@ -36,6 +37,7 @@ app.get("/health", authMiddleware, async (req: Request, res: Response) => {
 
 // Routes
 app.use("/api/auth", authMiddleware, authRoutes);
+app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", authMiddleware, ordersRoutes);
 

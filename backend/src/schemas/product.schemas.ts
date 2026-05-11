@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { STATIC_CATEGORY_IDS } from "../constants/categories";
 
 export const createProductSchema = z.object({
   name: z
@@ -8,7 +9,12 @@ export const createProductSchema = z.object({
   slug: z.string().min(1, "Slug jest wymagany"),
   description: z.string().optional(),
   price: z.number().min(0, "Cena nie może być ujemna"),
-  categoryId: z.string().min(1, "Kategoria jest wymagana"),
+  categoryId: z
+    .string()
+    .min(1, "Kategoria jest wymagana")
+    .refine((categoryId) => STATIC_CATEGORY_IDS.includes(categoryId), {
+      message: "Nieprawidlowa kategoria",
+    }),
 });
 
 export type CreateProductData = z.infer<typeof createProductSchema>;

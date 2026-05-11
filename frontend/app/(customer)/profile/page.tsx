@@ -69,8 +69,7 @@ export default function ProfilePage() {
                   Dane użytkownika
                 </h1>
                 <p className="mt-3 max-w-2xl text-body text-muted-foreground">
-                  Widok konta przygotowany pod przyszłą edycję danych, hasła i
-                  preferencji użytkownika.
+                  Widok konta
                 </p>
               </div>
               <div className="flex gap-2">
