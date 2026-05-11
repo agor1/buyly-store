@@ -121,7 +121,9 @@ export default function Navbar() {
               <DrawerTitle className="font-display text-text-bright">
                 BUY<span className="text-cyan">LY</span>
               </DrawerTitle>
-              <DrawerDescription>{"// navigation"}</DrawerDescription>
+              <DrawerDescription className="text-cyan">
+                {"// PANEL NAWIGACYJNY"}
+              </DrawerDescription>
             </DrawerHeader>
             <div className="px-4 pb-2">
               <form action="/products/search">
@@ -171,24 +173,28 @@ export default function Navbar() {
                   </div>
                 </div>
                 <div className="flex flex-col">
-                  <button
-                    className="border-b border-border px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:text-cyan"
-                    type="button"
-                  >
-                    Profil
-                  </button>
+                  <DrawerClose asChild>
+                    <Link
+                      href="/profile"
+                      className="border-b border-border px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-cyan"
+                    >
+                      Profil
+                    </Link>
+                  </DrawerClose>
                   <button
                     className="border-b border-border px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:text-cyan"
                     type="button"
                   >
                     Moje zamówienia
                   </button>
-                  <button
-                    className="border-b border-border px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:text-cyan"
-                    type="button"
-                  >
-                    Ustawienia
-                  </button>
+                  <DrawerClose asChild>
+                    <Link
+                      href="/profile/settings"
+                      className="border-b border-border px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-cyan"
+                    >
+                      Ustawienia
+                    </Link>
+                  </DrawerClose>
                 </div>
               </div>
             )}
@@ -273,9 +279,13 @@ export default function Navbar() {
                   </span>{" "}
                   <br /> {user.email}
                 </DropdownMenuLabel>
-                <DropdownMenuItem>Profil</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">Profil</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem>Moje zamówienia</DropdownMenuItem>
-                <DropdownMenuItem>Ustawienia</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile/settings">Ustawienia</Link>
+                </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
