@@ -3,6 +3,7 @@ import {
   registerUser,
   loginUser,
   changeUserRole,
+  getMe,
 } from "../services/auth.service";
 import { AuthRequest } from "../types/authRequest";
 
@@ -59,14 +60,40 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// Get me controller
+export const getCurrrentUser = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const userId = req.userId;
+    const user = await getMe(userId);
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "USER_NOT_FOUND") {
+      res.status(404).json({ error: "User not found" });
+    } else {
+      res.status(500).json({ error: "Failed to fetch user data" });
+    }
+  }
+};
+
 // Logout controller
-export const logout = async (req: Request, res: Response) => {
+export const logout = (req: Request, res: Response) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   });
-
   res.json({ message: "Logged out successfully" });
 };
 

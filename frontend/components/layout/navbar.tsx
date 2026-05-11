@@ -29,6 +29,16 @@ import {
 } from "@/components/ui/input-group";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useAuthStore } from "@/lib/auth-store";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const navLinks = [
   {
@@ -142,6 +152,46 @@ export default function Navbar() {
                 </DrawerClose>
               ))}
             </div>
+            {isAuthenticated && (
+              <div className="mx-4 mt-4 border border-border bg-base">
+                <div className="flex items-center gap-3 border-b border-border p-4">
+                  <Avatar>
+                    <AvatarImage />
+                    <AvatarFallback>
+                      {user?.name ? user.name[0] : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-text-bright">
+                      {user?.name || "Moje konto"}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <button
+                    className="border-b border-border px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:text-cyan"
+                    type="button"
+                  >
+                    Profil
+                  </button>
+                  <button
+                    className="border-b border-border px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:text-cyan"
+                    type="button"
+                  >
+                    Moje zamówienia
+                  </button>
+                  <button
+                    className="border-b border-border px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:text-cyan"
+                    type="button"
+                  >
+                    Ustawienia
+                  </button>
+                </div>
+              </div>
+            )}
             <DrawerFooter className="gap-3">
               {isAuthenticated ? (
                 <DrawerClose asChild>
@@ -206,15 +256,40 @@ export default function Navbar() {
           ))}
         </div>
         {isAuthenticated ? (
-          <Button
-            onClick={handleLogout}
-            disabled={loading}
-            variant="outline"
-            className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
-          >
-            Wyloguj się
-            <SignOut />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="hover:cursor-pointer">
+                <AvatarImage />
+                <AvatarFallback>
+                  {user?.name ? user.name[0] : "U"}
+                </AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="mr-10 mt-2 w-48">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="">
+                  <span className="font-medium text-text-bright">
+                    {user.name}
+                  </span>{" "}
+                  <br /> {user.email}
+                </DropdownMenuLabel>
+                <DropdownMenuItem>Profil</DropdownMenuItem>
+                <DropdownMenuItem>Moje zamówienia</DropdownMenuItem>
+                <DropdownMenuItem>Ustawienia</DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  disabled={loading}
+                  variant="destructive"
+                >
+                  Wyloguj się
+                  <SignOut />
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
           <div className="ml-2 flex items-center gap-2">
             <Button

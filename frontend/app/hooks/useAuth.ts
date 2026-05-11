@@ -11,45 +11,65 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Login
-  const login = useCallback(async (payload: authService.LoginPayload) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const session = await authService.login(payload);
-      setSession(session);
-      return session.user;
-    } catch (err) {
-      const errorMessage =
-        axios.isAxiosError(err) && err.response?.data?.error
-          ? err.response.data.error
-          : "Logowanie nie powiodło się";
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [setSession]);
+  const login = useCallback(
+    async (payload: authService.LoginPayload) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const session = await authService.login(payload);
+        setSession(session);
+        const userData = await authService.getCurrentUser();
+
+        if (userData) {
+          setSession({ user: userData, token: session.token });
+          return userData;
+        }
+
+        return session.user;
+      } catch (err) {
+        const errorMessage =
+          axios.isAxiosError(err) && err.response?.data?.error
+            ? err.response.data.error
+            : "Logowanie nie powiodło się";
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setSession],
+  );
 
   // Register
-  const register = useCallback(async (payload: authService.RegisterPayload) => {
-    setLoading(true);
-    setError(null);
+  const register = useCallback(
+    async (payload: authService.RegisterPayload) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const session = await authService.register(payload);
-      setSession(session);
-      return session.user;
-    } catch (err) {
-      const errorMessage =
-        axios.isAxiosError(err) && err.response?.data?.error
-          ? err.response.data.error
-          : "Rejestracja nie powiodła się";
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [setSession]);
+      try {
+        const session = await authService.register(payload);
+        setSession(session);
+        const userData = await authService.getCurrentUser();
+
+        if (userData) {
+          setSession({ user: userData, token: session.token });
+          return userData;
+        }
+
+        return session.user;
+      } catch (err) {
+        const errorMessage =
+          axios.isAxiosError(err) && err.response?.data?.error
+            ? err.response.data.error
+            : "Rejestracja nie powiodła się";
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [setSession],
+  );
 
   // Logout
   const logout = useCallback(async () => {
@@ -78,7 +98,7 @@ export const useAuth = () => {
     try {
       const userData = await authService.getCurrentUser();
       if (userData) {
-        setSession({ user: userData, token });
+        setSession({ user: userData, token: useAuthStore.getState().token });
       }
       return userData;
     } catch {
@@ -87,7 +107,7 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [setSession, token]);
+  }, [setSession]);
 
   return {
     user,

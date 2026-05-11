@@ -69,6 +69,24 @@ export const loginUser = async (data: LoginData) => {
   return { user, token };
 };
 
+// Get me service
+export const getMe = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      created_at: true,
+    },
+  });
+  if (!user) {
+    throw new Error("USER_NOT_FOUND");
+  }
+  return user;
+};
+
 // Change user role (only admin)
 export const changeUserRole = async (
   userId: string,
