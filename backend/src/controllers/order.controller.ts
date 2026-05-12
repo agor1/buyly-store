@@ -24,10 +24,12 @@ export const createNewOrder = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const { items, shippingAddress } = req.body;
+    const { items, shippingAddress, shippingType, paymentType } = req.body;
     const order = await createOrder({
       userId: req.userId,
       shippingAddress,
+      shippingType,
+      paymentType,
       items,
     });
 

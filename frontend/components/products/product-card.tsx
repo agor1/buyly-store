@@ -2,9 +2,12 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
+import { ShoppingCart } from "@phosphor-icons/react";
 
-import type { Product } from "@/lib/products";
+import { Button } from "@/components/ui/button";
+import type { Product } from "@/lib/api/products";
 import { formatPrice } from "@/lib/product-utils";
+import { useCartStore } from "@/lib/store/cart-store";
 
 interface ProductCardProps {
   product: Product;
@@ -12,21 +15,22 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const category = product.category?.name ?? "Produkt";
+  const addItem = useCartStore((state) => state.addItem);
 
   return (
     <motion.div
       whileHover={{ y: -4 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
     >
-      <Link
-        className="group block border-hairline border-border bg-surface p-3 transition-colors hover:border-cyan focus-visible:border-cyan focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan/30"
-        href={`/products/${product.slug}`}
-      >
-        <article>
+      <article className="group border-hairline border-border bg-surface p-3 transition-colors hover:border-cyan focus-within:border-cyan focus-within:ring-1 focus-within:ring-cyan/30">
+        <Link
+          className="block focus-visible:outline-none"
+          href={`/products/${product.slug}`}
+        >
           <div className="relative mb-4 flex aspect-[4/3] items-center justify-center overflow-hidden bg-elevated">
-          <div className="absolute left-3 top-3 border-hairline border-cyan bg-cyan-bg px-2 py-1 font-mono text-label font-bold uppercase text-cyan">
-            {category}
-          </div>
+            <div className="absolute left-3 top-3 border-hairline border-cyan bg-cyan-bg px-2 py-1 font-mono text-label font-bold uppercase text-cyan">
+              {category}
+            </div>
 
             <motion.div
               className="absolute bottom-5 h-2 w-2/3 bg-border-strong"
@@ -47,8 +51,24 @@ export default function ProductCard({ product }: ProductCardProps) {
               {formatPrice(product.price)}
             </p>
           </div>
-        </article>
-      </Link>
+        </Link>
+        <Button
+          className="mt-4 w-full bg-cyan text-black hover:bg-cyan-dim"
+          disabled={product.stock <= 0}
+          onClick={() =>
+            addItem({
+              productId: product.id,
+              name: product.name,
+              slug: product.slug,
+              price: Number(product.price),
+            })
+          }
+          type="button"
+        >
+          Dodaj do koszyka
+          <ShoppingCart />
+        </Button>
+      </article>
     </motion.div>
   );
 }

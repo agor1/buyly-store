@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const createOrderSchema = z.object({
   shippingAddress: z.string().min(1, "Shipping address is required"),
+  shippingType: z.string().min(1, "Shipping type is required"),
+  paymentType: z.string().min(1, "Payment type is required"),
   items: z.array(
     z.object({
       productId: z.string().min(1, "Product ID is required"),

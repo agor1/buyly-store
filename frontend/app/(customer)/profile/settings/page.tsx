@@ -7,7 +7,7 @@ import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
-import { useAuthStore } from "@/lib/auth-store";
+import { useAuthStore } from "@/lib/store/auth-store";
 
 export default function ProfileSettingsPage() {
   const { user } = useAuthStore();
@@ -48,6 +48,12 @@ export default function ProfileSettingsPage() {
               className="border border-cyan bg-cyan-bg px-3 py-2 text-cyan"
             >
               Ustawienia
+            </Link>
+            <Link
+              href="/orders"
+              className="border border-border px-3 py-2 text-muted-foreground transition-colors hover:text-cyan"
+            >
+              Moje zamówienia
             </Link>
           </nav>
         </aside>

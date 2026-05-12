@@ -16,8 +16,9 @@ import { useEffect, useState } from "react";
 
 import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
-import { getProduct, type Product } from "@/lib/products";
+import { getProduct, type Product } from "@/lib/api/products";
 import { formatPrice, getStockLabel } from "@/lib/product-utils";
+import { useCartStore } from "@/lib/store/cart-store";
 
 interface ProductDetailsViewProps {
   slug: string;
@@ -43,8 +44,10 @@ const benefits = [
 
 export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
   const [product, setProduct] = useState<Product | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,6 +61,7 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
 
         if (isMounted) {
           setProduct(data);
+          setQuantity(1);
         }
       } catch {
         if (isMounted) {
@@ -80,6 +84,7 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
 
   const category = product?.category?.name ?? "Produkt";
   const stockLabel = product ? getStockLabel(product.stock) : "";
+  const canAddToCart = product ? product.stock > 0 : false;
   const specs = product
     ? [
         { label: "Kategoria", value: category },
@@ -184,25 +189,50 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
                   <Button
                     aria-label="Zmniejsz ilosc"
                     className="h-full rounded-none bg-transparent text-text-bright hover:bg-elevated hover:text-cyan"
+                    disabled={quantity <= 1}
+                    onClick={() => setQuantity((current) => Math.max(1, current - 1))}
                     size="icon"
+                    type="button"
                     variant="ghost"
                   >
                     <Minus />
                   </Button>
                   <span className="font-mono text-caption text-text-bright">
-                    1
+                    {quantity}
                   </span>
                   <Button
                     aria-label="Zwieksz ilosc"
                     className="h-full rounded-none bg-transparent text-text-bright hover:bg-elevated hover:text-cyan"
+                    disabled={!canAddToCart || quantity >= product.stock}
+                    onClick={() =>
+                      setQuantity((current) =>
+                        Math.min(product.stock, current + 1),
+                      )
+                    }
                     size="icon"
+                    type="button"
                     variant="ghost"
                   >
                     <Plus />
                   </Button>
                 </div>
 
-                <Button className="h-11 flex-1 bg-cyan text-black hover:bg-cyan-dim">
+                <Button
+                  className="h-11 flex-1 bg-cyan text-black hover:bg-cyan-dim"
+                  disabled={!canAddToCart}
+                  onClick={() =>
+                    addItem(
+                      {
+                        productId: product.id,
+                        name: product.name,
+                        slug: product.slug,
+                        price: Number(product.price),
+                      },
+                      quantity,
+                    )
+                  }
+                  type="button"
+                >
                   Dodaj do koszyka
                   <ShoppingCart />
                 </Button>

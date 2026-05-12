@@ -30,6 +30,8 @@ export const getOrders = async () => {
 export const createOrder = async ({
   userId,
   shippingAddress,
+  shippingType,
+  paymentType,
   items,
 }: OrderData) => {
   const products = await prisma.product.findMany({
@@ -50,6 +52,8 @@ export const createOrder = async ({
       user_id: userId,
       total_price: totalPrice,
       shipping_address: shippingAddress,
+      shipping_type: shippingType,
+      payment_type: paymentType,
       order_items: {
         create: items.map((item) => {
           const product = products.find((p) => p.id === item.productId);

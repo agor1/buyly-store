@@ -1,6 +1,6 @@
 import ProductCard from "@/components/products/product-card";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
-import type { Product } from "@/lib/products";
+import type { Product } from "@/lib/api/products";
 
 interface ProductListProps {
   error: string | null;

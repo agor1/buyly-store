@@ -16,7 +16,7 @@ export const validateRequest = (schema: ZodSchema) => {
         }));
 
         return res.status(400).json({
-          error: "Validation failed",
+          error: "Podaj poprawne dane",
           details: formattedErrors,
         });
       }

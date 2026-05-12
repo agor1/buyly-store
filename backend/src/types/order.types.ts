@@ -1,6 +1,8 @@
 export interface OrderData {
   userId: string;
   shippingAddress: string;
+  shippingType: string;
+  paymentType: string;
   items: OrderItemData[];
 }
 

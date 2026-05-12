@@ -1,0 +1,5 @@
+ALTER TABLE "Order" ADD COLUMN "shipping_type" TEXT NOT NULL DEFAULT 'courier';
+ALTER TABLE "Order" ADD COLUMN "payment_type" TEXT NOT NULL DEFAULT 'card';
+
+ALTER TABLE "Order" ALTER COLUMN "shipping_type" DROP DEFAULT;
+ALTER TABLE "Order" ALTER COLUMN "payment_type" DROP DEFAULT;

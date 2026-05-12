@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import * as authService from "@/lib/auth";
+import * as authService from "@/lib/api/auth";
 import axios from "axios";
-import { useAuthStore } from "@/lib/auth-store";
+import { useAuthStore } from "@/lib/store/auth-store";
 
 export const useAuth = () => {
   const { user, token, setSession, clearSession } = useAuthStore();

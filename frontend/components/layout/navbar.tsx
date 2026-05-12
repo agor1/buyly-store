@@ -17,6 +17,7 @@ import {
 import {
   List,
   MagnifyingGlass,
+  ShoppingCart,
   SignIn,
   SignOut,
   UserPlus,
@@ -28,7 +29,8 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { useAuth } from "@/app/hooks/useAuth";
-import { useAuthStore } from "@/lib/auth-store";
+import { useAuthStore } from "@/lib/store/auth-store";
+import { useCartStore } from "@/lib/store/cart-store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,10 +62,13 @@ export default function Navbar() {
   const { logout, loading } = useAuth();
   const router = useRouter();
   const isAuthenticated = !!user;
+  const cartItemsCount = useCartStore((state) =>
+    state.items.reduce((total, item) => total + item.quantity, 0),
+  );
 
   const handleLogout = async () => {
+    router.replace("/");
     await logout();
-    router.push("/");
     router.refresh();
   };
 
@@ -180,18 +185,28 @@ export default function Navbar() {
                 <div className="flex flex-col">
                   <DrawerClose asChild>
                     <Link
+                      href="/cart"
+                      className="border-b border-border px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-cyan"
+                    >
+                      Koszyk
+                    </Link>
+                  </DrawerClose>
+                  <DrawerClose asChild>
+                    <Link
                       href="/profile"
                       className="border-b border-border px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-cyan"
                     >
                       Profil
                     </Link>
                   </DrawerClose>
-                  <button
-                    className="border-b border-border px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:text-cyan"
-                    type="button"
-                  >
-                    Moje zamówienia
-                  </button>
+                  <DrawerClose asChild>
+                    <Link
+                      href="/orders"
+                      className="border-b border-border px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-cyan"
+                    >
+                      Moje zamówienia
+                    </Link>
+                  </DrawerClose>
                   <DrawerClose asChild>
                     <Link
                       href="/profile/settings"
@@ -262,8 +277,8 @@ export default function Navbar() {
               transition={{ duration: 0.16, ease: "easeOut" }}
             >
               <Link
-              href={link.href}
-              className="hover:text-cyan hover:underline underline-offset-4"
+                href={link.href}
+                className="hover:text-cyan hover:underline underline-offset-4"
               >
                 {"// "}
                 {link.label}
@@ -272,44 +287,63 @@ export default function Navbar() {
           ))}
         </div>
         {isAuthenticated ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Avatar className="hover:cursor-pointer">
-                <AvatarImage />
-                <AvatarFallback>
-                  {user?.name ? user.name[0] : "U"}
-                </AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="mr-10 mt-2 w-48">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel className="">
-                  <span className="font-medium text-text-bright">
-                    {user.name}
-                  </span>{" "}
-                  <br /> {user.email}
-                </DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">Profil</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>Moje zamówienia</DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/profile/settings">Ustawienia</Link>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  disabled={loading}
-                  variant="destructive"
-                >
-                  Wyloguj się
-                  <SignOut />
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="ml-2 flex items-center gap-3">
+            <Button
+              asChild
+              variant="outline"
+              className="relative border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
+            >
+              <Link href="/cart">
+                Koszyk
+                <ShoppingCart />
+                {cartItemsCount > 0 ? (
+                  <span className="absolute -right-2 -top-2 grid size-5 place-items-center border border-cyan bg-base font-mono text-[10px] font-bold text-cyan">
+                    {cartItemsCount}
+                  </span>
+                ) : null}
+              </Link>
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="hover:cursor-pointer">
+                  <AvatarImage />
+                  <AvatarFallback>
+                    {user?.name ? user.name[0] : "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="mr-10 mt-2 w-48">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="">
+                    <span className="font-medium text-text-bright">
+                      {user.name}
+                    </span>{" "}
+                    <br /> {user.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">Profil</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/orders">Moje zamówienia</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile/settings">Ustawienia</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    disabled={loading}
+                    variant="destructive"
+                  >
+                    Wyloguj się
+                    <SignOut />
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         ) : (
           <div className="ml-2 flex items-center gap-2">
             <Button

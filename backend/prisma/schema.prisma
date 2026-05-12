@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgres"
+  url      = env("DATABASE_URL")
 }
 
 // Enums
@@ -70,6 +71,8 @@ model Order {
   status           OrderStatus @default(PENDING)
   total_price      Decimal  
   shipping_address String  
+  shipping_type    String
+  payment_type     String
   created_at       DateTime @default(now())
 
   user             User @relation(fields: [user_id], references: [id], onDelete: Cascade)

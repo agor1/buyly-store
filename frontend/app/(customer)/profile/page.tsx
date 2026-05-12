@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuthStore } from "@/lib/auth-store";
+import { useAuthStore } from "@/lib/store/auth-store";
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
@@ -54,6 +54,12 @@ export default function ProfilePage() {
               className="border border-border px-3 py-2 text-muted-foreground transition-colors hover:text-cyan"
             >
               Ustawienia
+            </Link>
+            <Link
+              href="/orders"
+              className="border border-border px-3 py-2 text-muted-foreground transition-colors hover:text-cyan"
+            >
+              Moje zamówienia
             </Link>
           </nav>
         </aside>

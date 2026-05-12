@@ -26,8 +26,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { getCategories, type Category } from "@/lib/categories";
-import { getProducts, type Product } from "@/lib/products";
+import { getCategories, type Category } from "@/lib/api/categories";
+import { getProducts, type Product } from "@/lib/api/products";
 
 export default function ProductSearchView() {
   const [products, setProducts] = useState<Product[]>([]);
