@@ -31,7 +31,13 @@ const paymentOptions = [
 ];
 
 export default function CartPage() {
-  const { clearCart, items, removeItem, updateQuantity } = useCartStore();
+  const {
+    clearCart,
+    error: cartError,
+    items,
+    removeItem,
+    updateQuantity,
+  } = useCartStore();
   const [shippingAddress, setShippingAddress] = useState("");
   const [shippingType, setShippingType] = useState(shippingOptions[0].value);
   const [paymentType, setPaymentType] = useState(paymentOptions[0].value);
@@ -90,7 +96,7 @@ export default function CartPage() {
         items: orderItems,
       });
 
-      clearCart();
+      await clearCart();
       setShippingAddress("");
       setSuccessOrderId(order.id);
     } catch (error) {
@@ -122,6 +128,11 @@ export default function CartPage() {
               {orderError}
             </div>
           ) : null}
+          {cartError ? (
+            <div className="mt-5 border border-amber bg-amber-bg p-4 text-sm text-amber">
+              {cartError}
+            </div>
+          ) : null}
           <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_280px] lg:items-start">
             <section className="border border-border bg-base p-6">
               {items.length === 0 ? (
@@ -139,7 +150,7 @@ export default function CartPage() {
                     </div>
                     <Button
                       className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
-                      onClick={clearCart}
+                      onClick={() => void clearCart()}
                       type="button"
                       variant="outline"
                     >
@@ -184,7 +195,10 @@ export default function CartPage() {
                             aria-label="Zmniejsz ilość"
                             className="h-full rounded-none bg-transparent text-text-bright hover:bg-elevated hover:text-cyan"
                             onClick={() =>
-                              updateQuantity(item.productId, item.quantity - 1)
+                              void updateQuantity(
+                                item.productId,
+                                item.quantity - 1,
+                              )
                             }
                             size="icon"
                             type="button"
@@ -199,7 +213,10 @@ export default function CartPage() {
                             aria-label="Zwiększ ilość"
                             className="h-full rounded-none bg-transparent text-text-bright hover:bg-elevated hover:text-cyan"
                             onClick={() =>
-                              updateQuantity(item.productId, item.quantity + 1)
+                              void updateQuantity(
+                                item.productId,
+                                item.quantity + 1,
+                              )
                             }
                             size="icon"
                             type="button"
@@ -214,7 +231,7 @@ export default function CartPage() {
                         <Button
                           aria-label="Usuń produkt"
                           className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
-                          onClick={() => removeItem(item.productId)}
+                          onClick={() => void removeItem(item.productId)}
                           size="icon"
                           type="button"
                           variant="outline"

@@ -7,6 +7,7 @@ import { ShoppingCart } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/lib/api/products";
 import { formatPrice } from "@/lib/product-utils";
+import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
 
 interface ProductCardProps {
@@ -15,12 +16,21 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const category = product.category?.name ?? "Produkt";
+  const { hasHydrated, token, user } = useAuthStore();
   const addItem = useCartStore((state) => state.addItem);
   const cartQuantity = useCartStore(
     (state) =>
       state.items.find((item) => item.productId === product.id)?.quantity ?? 0,
   );
   const availableStock = Math.max(0, product.stock - cartQuantity);
+  const canUseCart =
+    hasHydrated && !!token && (user?.role === "CUSTOMER" || user?.role === "ADMIN");
+  const canAddToCart = canUseCart && availableStock > 0;
+  const addToCartLabel = !canUseCart
+    ? "Tylko dla klienta"
+    : availableStock <= 0
+      ? "Brak w magazynie"
+      : "Dodaj do koszyka";
 
   return (
     <motion.div
@@ -70,13 +80,13 @@ export default function ProductCard({ product }: ProductCardProps) {
         </Link>
         <Button
           className="mt-4 w-full bg-cyan text-black hover:bg-cyan-dim"
-          disabled={availableStock <= 0}
+          disabled={!canAddToCart}
           onClick={() => {
-            if (availableStock <= 0) {
+            if (!canAddToCart) {
               return;
             }
 
-            addItem({
+            void addItem({
               productId: product.id,
               name: product.name,
               slug: product.slug,
@@ -85,7 +95,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           }}
           type="button"
         >
-          Dodaj do koszyka
+          {addToCartLabel}
           <ShoppingCart />
         </Button>
       </article>

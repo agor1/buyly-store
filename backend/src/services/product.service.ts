@@ -24,6 +24,10 @@ export const getProduct = async (slug: string) => {
     throw new Error("PRODUCT_NOT_FOUND");
   }
 
+  if (!product.is_active) {
+    throw new Error("PRODUCT_IS_NOT_ACTIVE");
+  }
+
   return product;
 };
 
@@ -44,6 +48,7 @@ export const getProducts = async ({
         ? { price: "desc" as const }
         : { created_at: "desc" as const };
   const where = {
+    is_active: true,
     ...(categoryId ? { category_id: categoryId } : {}),
     ...(minPrice !== undefined || maxPrice !== undefined
       ? {

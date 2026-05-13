@@ -36,6 +36,7 @@ model User {
   created_at DateTime @default(now())
 
   orders    Order[]
+  cart_items CartItem[]
 }
 
 model Category {
@@ -61,8 +62,25 @@ model Product {
 
   category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
   order_items OrderItem[]
+  cart_items  CartItem[]
 
   @@index([category_id])
+}
+
+model CartItem {
+  id         String   @id @default(cuid())
+  user_id    String
+  product_id String
+  quantity   Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user       User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, product_id])
+  @@index([user_id])
+  @@index([product_id])
 }
 
 model Order {

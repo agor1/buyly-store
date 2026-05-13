@@ -45,6 +45,24 @@ export const createNewOrder = async (req: AuthRequest, res: Response) => {
 
     res.status(201).json(order);
   } catch (error) {
+    if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") {
+      return res
+        .status(400)
+        .json({ error: "Nie znaleziono produktu z koszyka." });
+    }
+
+    if (error instanceof Error && error.message === "PRODUCT_IS_NOT_ACTIVE") {
+      return res.status(400).json({
+        error: "Produkt nie jest juz dostepny.",
+      });
+    }
+
+    if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") {
+      return res.status(400).json({
+        error: "Brak wystarczającej ilości produktu w magazynie.",
+      });
+    }
+
     res.status(500).json({ error: "Failed to create order" });
   }
 };
@@ -62,6 +80,16 @@ export const updateOrder = async (req: Request, res: Response) => {
     const updatedOrder = await updateOrderStatus(id, status);
     res.status(200).json(updatedOrder);
   } catch (error) {
+    if (error instanceof Error && error.message === "ORDER_NOT_FOUND") {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    if (error instanceof Error && error.message === "ORDER_ALREADY_CANCELLED") {
+      return res.status(400).json({
+        error: "Cancelled order cannot be reactivated.",
+      });
+    }
+
     res.status(500).json({ error: "Failed to update order status" });
   }
 };
@@ -78,6 +106,10 @@ export const removeOrder = async (req: Request, res: Response) => {
     await deleteOrder(id);
     res.status(204).send();
   } catch (error) {
+    if (error instanceof Error && error.message === "ORDER_NOT_FOUND") {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
     res.status(500).json({ error: "Failed to delete order" });
   }
 };

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -58,13 +59,26 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const { user } = useAuthStore();
+  const { hasHydrated, user } = useAuthStore();
   const { logout, loading } = useAuth();
   const router = useRouter();
   const isAuthenticated = !!user;
+  const setCartOwner = useCartStore((state) => state.setCartOwner);
+  const loadCart = useCartStore((state) => state.loadCart);
   const cartItemsCount = useCartStore((state) =>
     state.items.reduce((total, item) => total + item.quantity, 0),
   );
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    setCartOwner(user?.id ?? null);
+    if (user?.id) {
+      void loadCart();
+    }
+  }, [hasHydrated, loadCart, setCartOwner, user?.id]);
 
   const handleLogout = async () => {
     await logout();

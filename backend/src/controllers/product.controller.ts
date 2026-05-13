@@ -16,6 +16,11 @@ export const getSingleProduct = async (req: Request, res: Response) => {
   } catch (error) {
     if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") {
       res.status(404).json({ error: "Product not found" });
+    } else if (
+      error instanceof Error &&
+      error.message === "PRODUCT_IS_NOT_ACTIVE"
+    ) {
+      res.status(404).json({ error: "Product not found" });
     } else {
       res.status(500).json({ error: "Failed to fetch product" });
     }

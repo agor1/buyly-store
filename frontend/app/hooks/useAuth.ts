@@ -4,9 +4,12 @@ import { useCallback, useState } from "react";
 import * as authService from "@/lib/api/auth";
 import axios from "axios";
 import { useAuthStore } from "@/lib/store/auth-store";
+import { useCartStore } from "@/lib/store/cart-store";
 
 export const useAuth = () => {
   const { user, token, setSession, clearSession } = useAuthStore();
+  const setCartOwner = useCartStore((state) => state.setCartOwner);
+  const loadCart = useCartStore((state) => state.loadCart);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,9 +25,13 @@ export const useAuth = () => {
 
         if (userData) {
           setSession({ user: userData, token: session.token });
+          setCartOwner(userData.id);
+          await loadCart();
           return userData;
         }
 
+        setCartOwner(session.user.id);
+        await loadCart();
         return session.user;
       } catch (err) {
         const errorMessage =
@@ -37,7 +44,7 @@ export const useAuth = () => {
         setLoading(false);
       }
     },
-    [setSession],
+    [loadCart, setCartOwner, setSession],
   );
 
   // Register
@@ -53,9 +60,13 @@ export const useAuth = () => {
 
         if (userData) {
           setSession({ user: userData, token: session.token });
+          setCartOwner(userData.id);
+          await loadCart();
           return userData;
         }
 
+        setCartOwner(session.user.id);
+        await loadCart();
         return session.user;
       } catch (err) {
         const errorMessage =
@@ -68,7 +79,7 @@ export const useAuth = () => {
         setLoading(false);
       }
     },
-    [setSession],
+    [loadCart, setCartOwner, setSession],
   );
 
   // Logout
@@ -86,9 +97,10 @@ export const useAuth = () => {
       setError(errorMessage);
     } finally {
       clearSession();
+      setCartOwner(null);
       setLoading(false);
     }
-  }, [clearSession]);
+  }, [clearSession, setCartOwner]);
 
   // Get me
   const getMe = useCallback(async () => {
@@ -99,6 +111,8 @@ export const useAuth = () => {
       const userData = await authService.getCurrentUser();
       if (userData) {
         setSession({ user: userData, token: useAuthStore.getState().token });
+        setCartOwner(userData.id);
+        await loadCart();
       }
       return userData;
     } catch {
@@ -107,7 +121,7 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [setSession]);
+  }, [loadCart, setCartOwner, setSession]);
 
   return {
     user,

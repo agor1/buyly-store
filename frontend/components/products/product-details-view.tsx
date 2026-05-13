@@ -18,6 +18,7 @@ import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { getProduct, type Product } from "@/lib/api/products";
 import { formatPrice, getStockLabel } from "@/lib/product-utils";
+import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
 
 interface ProductDetailsViewProps {
@@ -47,6 +48,7 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { hasHydrated, token, user } = useAuthStore();
   const addItem = useCartStore((state) => state.addItem);
   const cartQuantity = useCartStore((state) =>
     product
@@ -94,7 +96,14 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
     : 0;
   const selectedQuantity = Math.min(quantity, Math.max(1, availableStock));
   const stockLabel = product ? getStockLabel(availableStock) : "";
-  const canAddToCart = availableStock > 0;
+  const canUseCart =
+    hasHydrated && !!token && (user?.role === "CUSTOMER" || user?.role === "ADMIN");
+  const canAddToCart = canUseCart && availableStock > 0;
+  const addToCartLabel = !canUseCart
+    ? "Tylko dla klienta"
+    : availableStock <= 0
+      ? "Brak w magazynie"
+      : "Dodaj do koszyka";
   const specs = product
     ? [
         { label: "Kategoria", value: category },
@@ -104,11 +113,11 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
     : [];
 
   const handleAddToCart = () => {
-    if (!product || availableStock <= 0) {
+    if (!product || !canAddToCart) {
       return;
     }
 
-    addItem(
+    void addItem(
       {
         productId: product.id,
         name: product.name,
@@ -227,7 +236,7 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
                   <Button
                     aria-label="Zmniejsz ilość"
                     className="h-full rounded-none bg-transparent text-text-bright hover:bg-elevated hover:text-cyan"
-                    disabled={selectedQuantity <= 1}
+                    disabled={!canUseCart || selectedQuantity <= 1}
                     onClick={() =>
                       setQuantity((current) => Math.max(1, current - 1))
                     }
@@ -263,7 +272,7 @@ export default function ProductDetailsView({ slug }: ProductDetailsViewProps) {
                   onClick={handleAddToCart}
                   type="button"
                 >
-                  Dodaj do koszyka
+                  {addToCartLabel}
                   <ShoppingCart />
                 </Button>
                 <Button
