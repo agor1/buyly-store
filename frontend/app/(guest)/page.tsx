@@ -27,8 +27,6 @@ interface ProductsResponse {
   data: HomeProduct[];
 }
 
-const productColors = ["bg-cyan", "bg-green", "bg-amber"];
-
 const collections = [
   {
     label: "Elektronika",
