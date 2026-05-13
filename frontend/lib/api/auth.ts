@@ -12,6 +12,10 @@ export interface AuthResponse {
   token: string;
 }
 
+export interface CurrentUserResponse {
+  user: User;
+}
+
 export interface LoginPayload {
   email: string;
   password: string;
@@ -24,6 +28,12 @@ export interface RegisterPayload extends LoginPayload {
 export interface AuthSession {
   user: User;
   token: string;
+}
+
+export interface UpdateCurrentUserPayload {
+  name?: string;
+  currentPassword?: string;
+  newPassword?: string;
 }
 
 // Login function
@@ -60,7 +70,19 @@ export const logout = async (): Promise<void> => {
 // Get current user function
 export const getCurrentUser = async (): Promise<User | null> => {
   try {
-    const response = await api.get<AuthResponse>("/auth/me");
+    const response = await api.get<CurrentUserResponse>("/auth/me");
+    return response.data.user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Update current user function
+export const updateCurrentUser = async (
+  payload: UpdateCurrentUserPayload,
+): Promise<User> => {
+  try {
+    const response = await api.patch<CurrentUserResponse>("/auth/me", payload);
     return response.data.user;
   } catch (error) {
     throw error;

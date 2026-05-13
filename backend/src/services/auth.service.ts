@@ -14,6 +14,12 @@ interface LoginData {
   password: string;
 }
 
+interface UpdateCurrentUserData {
+  name?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}
+
 // Register service
 export const registerUser = async (data: RegisterData) => {
   const { email, password, name } = data;
@@ -86,6 +92,48 @@ export const getMe = async (userId: string) => {
     throw new Error("USER_NOT_FOUND");
   }
   return user;
+};
+
+// Update current user profile
+export const updateCurrentUser = async (
+  userId: string,
+  data: UpdateCurrentUserData,
+) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new Error("USER_NOT_FOUND");
+  }
+
+  const updateData: { name?: string; password_hash?: string } = {};
+
+  if (data.name !== undefined) {
+    updateData.name = data.name;
+  }
+
+  if (data.newPassword) {
+    const valid = await bcrypt.compare(
+      data.currentPassword ?? "",
+      user.password_hash,
+    );
+
+    if (!valid) {
+      throw new Error("INVALID_CURRENT_PASSWORD");
+    }
+
+    updateData.password_hash = await bcrypt.hash(data.newPassword, 10);
+  }
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: updateData,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      created_at: true,
+    },
+  });
 };
 
 // Change user role (only admin)

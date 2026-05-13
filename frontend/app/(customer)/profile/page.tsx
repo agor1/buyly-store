@@ -1,6 +1,8 @@
 "use client";
 
+import axios from "axios";
 import Link from "next/link";
+import { useState } from "react";
 import {
   EnvelopeSimple,
   IdentificationCard,
@@ -15,11 +17,98 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { updateCurrentUser } from "@/lib/api/auth";
 import { useAuthStore } from "@/lib/store/auth-store";
 
 export default function ProfilePage() {
-  const { user } = useAuthStore();
+  const { setSession, token, user } = useAuthStore();
+  const [name, setName] = useState<string | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false);
   const initials = user?.name?.[0] || user?.email?.[0] || "U";
+  const profileName = name ?? user?.name ?? "";
+
+  const getErrorMessage = (error: unknown, fallback: string) => {
+    if (axios.isAxiosError(error)) {
+      const details = error.response?.data?.details;
+
+      if (Array.isArray(details) && details[0]?.message) {
+        return details[0].message;
+      }
+
+      if (typeof error.response?.data?.error === "string") {
+        return error.response.data.error;
+      }
+    }
+
+    return fallback;
+  };
+
+  const saveUser = (updatedUser: NonNullable<typeof user>) => {
+    setSession({ user: updatedUser, token });
+  };
+
+  const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setProfileError(null);
+    setProfileSuccess(null);
+
+    const trimmedName = profileName.trim();
+
+    if (!trimmedName) {
+      setProfileError("Nazwa użytkownika jest wymagana");
+      return;
+    }
+
+    setIsProfileSaving(true);
+
+    try {
+      const updatedUser = await updateCurrentUser({ name: trimmedName });
+      saveUser(updatedUser);
+      setName(updatedUser.name || "");
+      setProfileSuccess("Nazwa użytkownika została zapisana");
+    } catch (error) {
+      setProfileError(
+        getErrorMessage(error, "Nie udało się zapisać nazwy użytkownika"),
+      );
+    } finally {
+      setIsProfileSaving(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (!currentPassword || !newPassword) {
+      setPasswordError("Obecne i nowe hasło są wymagane");
+      return;
+    }
+
+    setIsPasswordSaving(true);
+
+    try {
+      const updatedUser = await updateCurrentUser({
+        currentPassword,
+        newPassword,
+      });
+      saveUser(updatedUser);
+      setCurrentPassword("");
+      setNewPassword("");
+      setPasswordSuccess("Hasło zostało zmienione");
+    } catch (error) {
+      setPasswordError(getErrorMessage(error, "Nie udało się zmienić hasła"));
+    } finally {
+      setIsPasswordSaving(false);
+    }
+  };
 
   return (
     <main className="scanlines flex-1 bg-base text-text">
@@ -83,18 +172,29 @@ export default function ProfilePage() {
                   type="button"
                   variant="outline"
                   className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                  onClick={() => setName(null)}
+                  disabled={isProfileSaving}
                 >
                   Anuluj
                 </Button>
-                <Button type="button" className="bg-cyan text-black">
-                  Zapisz
+                <Button
+                  type="submit"
+                  form="profile-form"
+                  className="bg-cyan text-black"
+                  disabled={isProfileSaving}
+                >
+                  {isProfileSaving ? "Zapisywanie..." : "Zapisz"}
                 </Button>
               </div>
             </div>
           </header>
 
           <section className="grid gap-6 xl:grid-cols-[1fr_360px]">
-            <form className="border-hairline border-border bg-surface p-5 shadow-cyan">
+            <form
+              id="profile-form"
+              className="border-hairline border-border bg-surface p-5 shadow-cyan"
+              onSubmit={handleProfileSubmit}
+            >
               <div className="mb-5 flex items-center gap-2 text-text-bright">
                 <IdentificationCard className="text-cyan" size={22} />
                 <h2 className="font-display text-xl font-bold">Informacje</h2>
@@ -105,9 +205,11 @@ export default function ProfilePage() {
                   <Label htmlFor="profile-name">Nazwa</Label>
                   <Input
                     id="profile-name"
-                    value={user?.name || ""}
+                    value={profileName}
                     placeholder="Twoja nazwa"
                     className="border-border bg-base text-text-bright"
+                    onChange={(e) => setName(e.target.value)}
+                    disabled={isProfileSaving}
                   />
                 </div>
                 <div className="space-y-2">
@@ -117,6 +219,7 @@ export default function ProfilePage() {
                     value={user?.email || ""}
                     placeholder="adres@email.pl"
                     className="border-border bg-base text-text-bright"
+                    disabled
                   />
                 </div>
                 <div className="space-y-2">
@@ -136,6 +239,16 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
+              {profileError && (
+                <div className="mt-5 rounded border border-red-500 bg-red-500/10 p-3 text-sm text-red-500">
+                  {profileError}
+                </div>
+              )}
+              {profileSuccess && (
+                <div className="mt-5 rounded border border-green bg-green-bg p-3 text-sm text-green">
+                  {profileSuccess}
+                </div>
+              )}
             </form>
 
             <div className="grid gap-6">
@@ -161,13 +274,16 @@ export default function ProfilePage() {
                   <Key className="text-cyan" size={22} />
                   <h2 className="font-display text-xl font-bold">Hasło</h2>
                 </div>
-                <div className="grid gap-4">
+                <form className="grid gap-4" onSubmit={handlePasswordSubmit}>
                   <div className="space-y-2">
                     <Label htmlFor="current-password">Obecne hasło</Label>
                     <Input
                       id="current-password"
                       type="password"
                       className="border-border bg-base text-text-bright"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      disabled={isPasswordSaving}
                     />
                   </div>
                   <div className="space-y-2">
@@ -176,12 +292,29 @@ export default function ProfilePage() {
                       id="new-password"
                       type="password"
                       className="border-border bg-base text-text-bright"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={isPasswordSaving}
                     />
                   </div>
-                  <Button type="button" className="bg-cyan text-black">
-                    Zmień hasło
+                  {passwordError && (
+                    <div className="rounded border border-red-500 bg-red-500/10 p-3 text-sm text-red-500">
+                      {passwordError}
+                    </div>
+                  )}
+                  {passwordSuccess && (
+                    <div className="rounded border border-green bg-green-bg p-3 text-sm text-green">
+                      {passwordSuccess}
+                    </div>
+                  )}
+                  <Button
+                    type="submit"
+                    className="bg-cyan text-black"
+                    disabled={isPasswordSaving}
+                  >
+                    {isPasswordSaving ? "Zapisywanie..." : "Zmień hasło"}
                   </Button>
-                </div>
+                </form>
               </section>
             </div>
           </section>

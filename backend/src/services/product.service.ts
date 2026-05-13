@@ -2,6 +2,16 @@ import { prisma } from "../lib/prisma.js";
 import { ensureCategoryExists } from "./category.service.js";
 import { ProductData } from "../types/product.types.js";
 
+interface GetProductsOptions {
+  page: number;
+  limit: number;
+  search?: string;
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: "relevance" | "price-asc" | "price-desc" | "newest";
+}
+
 export const getProduct = async (slug: string) => {
   const product = await prisma.product.findUnique({
     where: { slug },
@@ -17,16 +27,73 @@ export const getProduct = async (slug: string) => {
   return product;
 };
 
-export const getProducts = async () => {
-  return prisma.product.findMany({
-    include: {
-      category: true,
+export const getProducts = async ({
+  page,
+  limit,
+  search,
+  categoryId,
+  minPrice,
+  maxPrice,
+  sort = "relevance",
+}: GetProductsOptions) => {
+  const skip = (page - 1) * limit;
+  const orderBy =
+    sort === "price-asc"
+      ? { price: "asc" as const }
+      : sort === "price-desc"
+        ? { price: "desc" as const }
+        : { created_at: "desc" as const };
+  const where = {
+    ...(categoryId ? { category_id: categoryId } : {}),
+    ...(minPrice !== undefined || maxPrice !== undefined
+      ? {
+          price: {
+            ...(minPrice !== undefined ? { gte: minPrice } : {}),
+            ...(maxPrice !== undefined ? { lte: maxPrice } : {}),
+          },
+        }
+      : {}),
+    ...(search
+      ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" as const } },
+            { description: { contains: search, mode: "insensitive" as const } },
+            {
+              category: {
+                name: { contains: search, mode: "insensitive" as const },
+              },
+            },
+          ],
+        }
+      : {}),
+  };
+
+  const [data, total] = await prisma.$transaction([
+    prisma.product.findMany({
+      where,
+      include: {
+        category: true,
+      },
+      orderBy,
+      skip,
+      take: limit,
+    }),
+    prisma.product.count({ where }),
+  ]);
+
+  return {
+    data,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
     },
-  });
+  };
 };
 
 export const addProduct = async (data: ProductData) => {
-  const { name, slug, description, price, categoryId } = data;
+  const { name, slug, description, imageUrl, price, stock, categoryId } = data;
   const category = await ensureCategoryExists(categoryId);
 
   return prisma.product.create({
@@ -34,7 +101,9 @@ export const addProduct = async (data: ProductData) => {
       name,
       slug,
       description: description || "",
+      image_url: imageUrl || null,
       price: price || 0,
+      stock: stock || 0,
       category_id: category.id,
     },
     include: {
@@ -44,7 +113,7 @@ export const addProduct = async (data: ProductData) => {
 };
 
 export const updateProduct = async (id: string, data: ProductData) => {
-  const { name, slug, description, price, categoryId } = data;
+  const { name, slug, description, imageUrl, price, stock, categoryId } = data;
 
   const product = await prisma.product.findUnique({ where: { id } });
   if (!product) {
@@ -59,7 +128,9 @@ export const updateProduct = async (id: string, data: ProductData) => {
       name,
       slug,
       description: description || "",
+      image_url: imageUrl || null,
       price: price || 0,
+      stock: stock || 0,
       category_id: category.id,
     },
     include: {

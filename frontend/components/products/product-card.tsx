@@ -16,53 +16,73 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const category = product.category?.name ?? "Produkt";
   const addItem = useCartStore((state) => state.addItem);
+  const cartQuantity = useCartStore(
+    (state) =>
+      state.items.find((item) => item.productId === product.id)?.quantity ?? 0,
+  );
+  const availableStock = Math.max(0, product.stock - cartQuantity);
 
   return (
     <motion.div
+      className="h-full"
       whileHover={{ y: -4 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
     >
-      <article className="group border-hairline border-border bg-surface p-3 transition-colors hover:border-cyan focus-within:border-cyan focus-within:ring-1 focus-within:ring-cyan/30">
+      <article className="group flex h-full flex-col border-hairline border-border bg-surface p-3 transition-colors hover:border-cyan focus-within:border-cyan focus-within:ring-1 focus-within:ring-cyan/30">
         <Link
-          className="block focus-visible:outline-none"
+          className="flex flex-1 flex-col focus-visible:outline-none"
           href={`/products/${product.slug}`}
         >
           <div className="relative mb-4 flex aspect-[4/3] items-center justify-center overflow-hidden bg-elevated">
+            {product.image_url ? (
+              <div
+                aria-label={product.name}
+                className="h-full w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-105"
+                role="img"
+                style={{ backgroundImage: `url(${product.image_url})` }}
+              />
+            ) : null}
             <div className="absolute left-3 top-3 border-hairline border-cyan bg-cyan-bg px-2 py-1 font-mono text-label font-bold uppercase text-cyan">
               {category}
             </div>
 
-            <motion.div
-              className="absolute bottom-5 h-2 w-2/3 bg-border-strong"
-              initial={false}
-              transition={{ duration: 0.2 }}
-              whileHover={{ scaleX: 1.08 }}
-            />
+            {!product.image_url ? (
+              <motion.div
+                className="absolute bottom-5 h-2 w-2/3 bg-border-strong"
+                initial={false}
+                transition={{ duration: 0.2 }}
+                whileHover={{ scaleX: 1.08 }}
+              />
+            ) : null}
           </div>
-          <p className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
+          <p className="truncate font-mono text-label uppercase tracking-[0.14em] text-cyan">
             {"// "}
             {product.category?.slug ?? product.slug}
           </p>
-          <div className="mt-2 flex items-end justify-between gap-4">
-            <h2 className="font-display text-xl font-bold leading-tight text-text-bright">
+          <div className="mt-2 flex min-w-0 items-end justify-between gap-4">
+            <h2 className="line-clamp-2 min-w-0 break-words font-display text-xl font-bold leading-tight text-text-bright">
               {product.name}
             </h2>
-            <p className="shrink-0 font-mono text-price font-bold text-cyan">
+            <p className="shrink-0 text-right font-mono text-price font-bold text-cyan">
               {formatPrice(product.price)}
             </p>
           </div>
         </Link>
         <Button
           className="mt-4 w-full bg-cyan text-black hover:bg-cyan-dim"
-          disabled={product.stock <= 0}
-          onClick={() =>
+          disabled={availableStock <= 0}
+          onClick={() => {
+            if (availableStock <= 0) {
+              return;
+            }
+
             addItem({
               productId: product.id,
               name: product.name,
               slug: product.slug,
               price: Number(product.price),
-            })
-          }
+            });
+          }}
           type="button"
         >
           Dodaj do koszyka

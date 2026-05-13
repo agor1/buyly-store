@@ -78,7 +78,6 @@ export const useAuth = () => {
 
     try {
       await authService.logout();
-      clearSession();
     } catch (err) {
       const errorMessage =
         axios.isAxiosError(err) && err.response?.data?.error
@@ -86,6 +85,7 @@ export const useAuth = () => {
           : "Wylogowanie nie powiodło się";
       setError(errorMessage);
     } finally {
+      clearSession();
       setLoading(false);
     }
   }, [clearSession]);

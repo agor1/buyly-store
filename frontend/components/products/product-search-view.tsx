@@ -4,8 +4,10 @@ import {
   Funnel,
   MagnifyingGlass,
   SlidersHorizontal,
+  X,
 } from "@phosphor-icons/react/dist/ssr";
-import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import Footer from "@/components/layout/footer";
 import CategoryFilter from "@/components/products/category-filter";
@@ -16,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import {
   InputGroup,
   InputGroupAddon,
+  InputGroupButton,
   InputGroupInput,
 } from "@/components/ui/input-group";
 import {
@@ -27,43 +30,71 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { getCategories, type Category } from "@/lib/api/categories";
-import { getProducts, type Product } from "@/lib/api/products";
+import {
+  getProducts,
+  type PaginationMeta,
+  type Product,
+  type ProductSort,
+} from "@/lib/api/products";
+
+const productsPerPage = 9;
 
 export default function ProductSearchView() {
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get("q") ?? "";
+  const initialCategoryId = searchParams.get("categoryId") ?? "all";
+  const initialSort = getValidSort(searchParams.get("sort"));
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
+  const [searchInput, setSearchInput] = useState(initialSearch);
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [minPriceInput, setMinPriceInput] = useState("");
+  const [maxPriceInput, setMaxPriceInput] = useState("");
+  const [priceRange, setPriceRange] = useState<{
+    minPrice?: number;
+    maxPrice?: number;
+  }>({});
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState(initialCategoryId);
+  const [selectedSort, setSelectedSort] = useState<ProductSort>(initialSort);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationMeta, setPaginationMeta] = useState<PaginationMeta>({
+    page: 1,
+    limit: productsPerPage,
+    total: 0,
+    totalPages: 1,
+  });
   const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [areCategoriesLoading, setAreCategoriesLoading] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
-
-  const filteredProducts = useMemo(() => {
-    if (selectedCategoryId === "all") {
-      return products;
-    }
-
-    return products.filter(
-      (product) =>
-        product.category_id === selectedCategoryId ||
-        product.category?.id === selectedCategoryId,
-    );
-  }, [products, selectedCategoryId]);
 
   useEffect(() => {
     let isMounted = true;
 
     const loadProducts = async () => {
       try {
-        const data = await getProducts();
+        setIsProductsLoading(true);
+
+        const response = await getProducts({
+          page: currentPage,
+          limit: productsPerPage,
+          search: searchTerm.trim() || undefined,
+          categoryId:
+            selectedCategoryId === "all" ? undefined : selectedCategoryId,
+          minPrice: priceRange.minPrice,
+          maxPrice: priceRange.maxPrice,
+          sort: selectedSort,
+        });
 
         if (isMounted) {
-          setProducts(data);
+          setProducts(response.data);
+          setPaginationMeta(response.meta);
           setProductsError(null);
         }
       } catch {
         if (isMounted) {
-          setProductsError("Nie udalo sie pobrac produktow.");
+          setProductsError("Nie udało się pobrać produktów.");
         }
       } finally {
         if (isMounted) {
@@ -71,6 +102,16 @@ export default function ProductSearchView() {
         }
       }
     };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentPage, priceRange, searchTerm, selectedCategoryId, selectedSort]);
+
+  useEffect(() => {
+    let isMounted = true;
 
     const loadCategories = async () => {
       try {
@@ -82,7 +123,7 @@ export default function ProductSearchView() {
         }
       } catch {
         if (isMounted) {
-          setCategoriesError("Nie udalo sie pobrac kategorii.");
+          setCategoriesError("Nie udało się pobrać kategorii.");
         }
       } finally {
         if (isMounted) {
@@ -91,13 +132,48 @@ export default function ProductSearchView() {
       }
     };
 
-    loadProducts();
     loadCategories();
 
     return () => {
       isMounted = false;
     };
   }, []);
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setSearchTerm(searchInput);
+    setCurrentPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategoryId(categoryId);
+    setCurrentPage(1);
+  };
+
+  const handlePriceFilter = () => {
+    const minPrice = Number(minPriceInput);
+    const maxPrice = Number(maxPriceInput);
+
+    setPriceRange({
+      minPrice:
+        minPriceInput && Number.isFinite(minPrice) ? minPrice : undefined,
+      maxPrice:
+        maxPriceInput && Number.isFinite(maxPrice) ? maxPrice : undefined,
+    });
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (sort: ProductSort) => {
+    setSelectedSort(sort);
+    setCurrentPage(1);
+  };
 
   return (
     <main className="scanlines flex-1 overflow-x-hidden bg-base text-text">
@@ -108,15 +184,15 @@ export default function ProductSearchView() {
               {"// produkty"}
             </p>
             <h1 className="mt-4 font-display text-4xl font-extrabold leading-none text-text-bright sm:text-5xl md:text-6xl">
-              Znajdz produkty.
+              Znajdź produkty.
             </h1>
             <p className="mt-5 max-w-2xl text-body text-muted-foreground">
-              Przegladaj wyniki, zawezaj kategorie i szybko porownuj produkty w
+              Przeglądaj wyniki, zawężaj kategorie i szybko porównuj produkty w
               marketplace Buyly.
             </p>
           </div>
 
-          <form action="/products/search" className="w-full">
+          <form className="w-full" onSubmit={handleSearchSubmit}>
             <InputGroup className="h-11 border-border bg-surface text-text-bright shadow-cyan focus-within:border-cyan focus-within:ring-1 focus-within:ring-cyan/30">
               <InputGroupAddon>
                 <MagnifyingGlass className="text-cyan" />
@@ -125,9 +201,29 @@ export default function ProductSearchView() {
                 aria-label="Wyszukaj produkty"
                 className="h-11 text-text-bright placeholder:text-muted-foreground"
                 name="q"
+                onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Nazwa produktu, marka, kategoria"
+                value={searchInput}
                 type="search"
               />
+              <InputGroupAddon align="inline-end">
+                {searchInput ? (
+                  <InputGroupButton
+                    aria-label="Wyczyść wyszukiwanie"
+                    onClick={handleClearSearch}
+                    size="icon-xs"
+                    type="button"
+                  >
+                    <X />
+                  </InputGroupButton>
+                ) : null}
+                <InputGroupButton
+                  className="bg-cyan px-3 text-black hover:bg-cyan-dim"
+                  type="submit"
+                >
+                  Szukaj
+                </InputGroupButton>
+              </InputGroupAddon>
             </InputGroup>
           </form>
         </div>
@@ -146,7 +242,7 @@ export default function ProductSearchView() {
                 categories={categories}
                 error={categoriesError}
                 isLoading={areCategoriesLoading}
-                onSelectCategory={setSelectedCategoryId}
+                onSelectCategory={handleCategorySelect}
                 selectedCategoryId={selectedCategoryId}
               />
 
@@ -157,13 +253,19 @@ export default function ProductSearchView() {
                 <div className="grid grid-cols-2 gap-2">
                   <Input
                     className="h-9 border-border bg-base text-caption text-text-bright placeholder:text-muted-foreground focus-visible:border-cyan focus-visible:ring-cyan/30"
+                    min={0}
+                    onChange={(event) => setMinPriceInput(event.target.value)}
                     placeholder="od 0 PLN"
                     type="number"
+                    value={minPriceInput}
                   />
                   <Input
                     className="h-9 border-border bg-base text-caption text-text-bright placeholder:text-muted-foreground focus-visible:border-cyan focus-visible:ring-cyan/30"
+                    min={0}
+                    onChange={(event) => setMaxPriceInput(event.target.value)}
                     placeholder="do 999 PLN"
                     type="number"
+                    value={maxPriceInput}
                   />
                 </div>
               </div>
@@ -171,6 +273,8 @@ export default function ProductSearchView() {
               <Button
                 variant="outline"
                 className="w-full border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                onClick={handlePriceFilter}
+                type="button"
               >
                 Filtruj
                 <Funnel />
@@ -179,59 +283,84 @@ export default function ProductSearchView() {
           </aside>
 
           <section className="min-w-0">
-            <div className="relative z-50 mb-4 flex flex-col justify-between gap-3 border-hairline border-border bg-surface p-4 sm:flex-row sm:items-center">
+            <div className="relative mb-4 flex flex-col justify-between gap-3 border-hairline border-border bg-surface p-4 sm:flex-row sm:items-center">
               <div>
                 <p className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
                   {"// wyniki"}
                 </p>
                 <p className="mt-1 text-caption text-muted-foreground">
                   {isProductsLoading
-                    ? "Ladowanie produktow..."
-                    : `${filteredProducts.length} produktow pasujacych do wyszukiwania`}
+                    ? "Ładowanie produktów..."
+                    : `${paginationMeta.total} produktów pasujących do wyszukiwania`}
                 </p>
               </div>
-              <SortMenu />
+              <SortMenu
+                onSortChange={handleSortChange}
+                selectedSort={selectedSort}
+              />
             </div>
 
             <ProductList
               error={productsError}
               isLoading={isProductsLoading}
-              products={filteredProducts}
+              products={products}
             />
 
-            <Pagination className="mt-6 border-hairline border-border bg-surface p-3">
-              <PaginationContent className="flex-wrap gap-2">
-                <PaginationItem>
-                  <PaginationPrevious
-                    className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
-                    href="/products/search?page=1"
-                    text="Poprzednia"
-                  />
-                </PaginationItem>
-                {[1, 2, 3, 4].map((page) => (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      className={
-                        page === 1
-                          ? "border-cyan bg-cyan text-white hover:bg-cyan-dim"
-                          : "border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
-                      }
-                      href={`/products/search?page=${page}`}
-                      isActive={page === 1}
-                    >
-                      {page}
-                    </PaginationLink>
+            {paginationMeta.totalPages > 1 ? (
+              <Pagination className="mt-6 border-hairline border-border bg-surface p-3">
+                <PaginationContent className="flex-wrap gap-2">
+                  <PaginationItem>
+                    <PaginationPrevious
+                      className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                      href="#"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setCurrentPage((page) => Math.max(1, page - 1));
+                      }}
+                      text="Poprzednia"
+                    />
                   </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
-                    href="/products/search?page=2"
-                    text="Nastepna"
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+                  {Array.from({ length: paginationMeta.totalPages }).map(
+                    (_, index) => {
+                      const page = index + 1;
+
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            className={
+                              currentPage === page
+                                ? "border-cyan bg-cyan text-black hover:bg-cyan-dim"
+                                : "border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                            }
+                            href="#"
+                            isActive={currentPage === page}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              setCurrentPage(page);
+                            }}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    },
+                  )}
+                  <PaginationItem>
+                    <PaginationNext
+                      className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                      href="#"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setCurrentPage((page) =>
+                          Math.min(paginationMeta.totalPages, page + 1),
+                        );
+                      }}
+                      text="Następna"
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            ) : null}
           </section>
         </div>
       </section>
@@ -239,4 +368,12 @@ export default function ProductSearchView() {
       <Footer />
     </main>
   );
+}
+
+function getValidSort(sort: string | null): ProductSort {
+  if (sort === "price-asc" || sort === "price-desc" || sort === "newest") {
+    return sort;
+  }
+
+  return "relevance";
 }

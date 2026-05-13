@@ -19,9 +19,18 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthRequest = error.config?.url?.startsWith("/auth/");
+
+    if (
+      error.response?.status === 401 &&
+      !isAuthRequest &&
+      typeof window !== "undefined" &&
+      window.location.pathname !== "/login"
+    ) {
+      useAuthStore.getState().clearSession();
       window.location.href = "/login";
     }
+
     return Promise.reject(error);
   },
 );

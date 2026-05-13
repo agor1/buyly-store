@@ -41,7 +41,7 @@ export default function ProductList({
   if (products.length === 0) {
     return (
       <div className="border-hairline border-border bg-surface p-6 text-body text-muted-foreground">
-        Brak produktow do wyswietlenia.
+        Brak produktów do wyświetlenia.
       </div>
     );
   }
@@ -49,7 +49,7 @@ export default function ProductList({
   return (
     <Stagger className="relative z-0 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {products.map((product) => (
-        <StaggerItem key={product.id}>
+        <StaggerItem className="h-full" key={product.id}>
           <ProductCard product={product} />
         </StaggerItem>
       ))}

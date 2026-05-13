@@ -3,6 +3,7 @@ import {
   createOrder,
   updateOrderStatus,
   getMyOrders,
+  deleteOrder,
 } from "../services/orders.service.js";
 import { Request, Response } from "express";
 import { AuthRequest } from "../types/authRequest.js";
@@ -10,7 +11,16 @@ import { AuthRequest } from "../types/authRequest.js";
 // Get all orders controller
 export const getAllOrders = async (req: Request, res: Response) => {
   try {
-    const orders = await getOrders();
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
+    const search = typeof req.query.search === "string" ? req.query.search : "";
+
+    const orders = await getOrders({
+      page,
+      limit,
+      search: search.trim() || undefined,
+    });
+
     res.status(200).json(orders);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch orders" });
@@ -53,6 +63,22 @@ export const updateOrder = async (req: Request, res: Response) => {
     res.status(200).json(updatedOrder);
   } catch (error) {
     res.status(500).json({ error: "Failed to update order status" });
+  }
+};
+
+// Delete order controller
+export const removeOrder = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "Order ID is required" });
+    }
+
+    await deleteOrder(id);
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete order" });
   }
 };
 

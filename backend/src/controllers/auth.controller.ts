@@ -4,6 +4,7 @@ import {
   loginUser,
   changeUserRole,
   getMe,
+  updateCurrentUser,
 } from "../services/auth.service.js";
 import { AuthRequest } from "../types/authRequest.js";
 
@@ -83,6 +84,30 @@ export const getCurrrentUser = async (req: AuthRequest, res: Response) => {
       res.status(404).json({ error: "User not found" });
     } else {
       res.status(500).json({ error: "Failed to fetch user data" });
+    }
+  }
+};
+
+// Update me controller
+export const updateCurrrentUser = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const user = await updateCurrentUser(req.userId, req.body);
+
+    res.json({ user });
+  } catch (error) {
+    if (error instanceof Error && error.message === "USER_NOT_FOUND") {
+      res.status(404).json({ error: "User not found" });
+    } else if (
+      error instanceof Error &&
+      error.message === "INVALID_CURRENT_PASSWORD"
+    ) {
+      res.status(400).json({ error: "Current password is invalid" });
+    } else {
+      res.status(500).json({ error: "Failed to update user data" });
     }
   }
 };

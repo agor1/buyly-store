@@ -10,9 +10,13 @@ export default function CustomerLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { token, user } = useAuthStore();
+  const { hasHydrated, token, user } = useAuthStore();
 
   useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
     if (!token) {
       router.replace("/login");
       return;
@@ -21,9 +25,13 @@ export default function CustomerLayout({
     if (user?.role !== "CUSTOMER" && user?.role !== "ADMIN") {
       router.replace("/");
     }
-  }, [router, token, user]);
+  }, [hasHydrated, router, token, user]);
 
-  if (!token || (user?.role !== "CUSTOMER" && user?.role !== "ADMIN")) {
+  if (
+    !hasHydrated ||
+    !token ||
+    (user?.role !== "CUSTOMER" && user?.role !== "ADMIN")
+  ) {
     return null;
   }
 

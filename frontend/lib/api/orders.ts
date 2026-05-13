@@ -14,7 +14,7 @@ export interface CreateOrderPayload {
 
 export interface CreatedOrder {
   id: string;
-  status: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status: OrderStatus;
   total_price: number | string;
   shipping_address: string;
   shipping_type: string;
@@ -36,14 +36,43 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
-  status: "PENDING" | "CONFIRMED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  status: OrderStatus;
   total_price: number | string;
   shipping_address: string;
   shipping_type: string;
   payment_type: string;
   created_at: string;
   order_items: OrderItem[];
+  user?: {
+    id: string;
+    email: string;
+  };
 }
+
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PaginatedOrdersResponse {
+  data: Order[];
+  meta: PaginationMeta;
+}
+
+export interface GetOrdersParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export type OrderStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
 
 export const createOrder = async (
   payload: CreateOrderPayload,
@@ -57,4 +86,25 @@ export const getMyOrders = async (): Promise<Order[]> => {
   const response = await api.get<Order[]>("/orders/my");
 
   return response.data;
+};
+
+export const getAllOrders = async (
+  params: GetOrdersParams = {},
+): Promise<PaginatedOrdersResponse> => {
+  const response = await api.get<PaginatedOrdersResponse>("/orders", {
+    params,
+  });
+
+  return response.data;
+};
+
+export const updateOrderStatus = async (
+  orderId: string,
+  status: OrderStatus,
+): Promise<void> => {
+  await api.patch(`/orders/${orderId}`, { status });
+};
+
+export const deleteOrder = async (orderId: string): Promise<void> => {
+  await api.delete(`/orders/${orderId}`);
 };

@@ -9,40 +9,51 @@ import Footer from "@/components/layout/footer";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import api from "@/lib/api/api";
 
-const products = [
-  {
-    brand: "sony",
-    name: "Wireless Headphones",
-    price: "349 PLN",
-    tag: "NEW",
-    color: "bg-cyan",
-  },
-  {
-    brand: "philips",
-    name: "Smart LED Starter Kit",
-    price: "199 PLN",
-    tag: "HOME",
-    color: "bg-green",
-  },
-  {
-    brand: "lego",
-    name: "Creator Space Rover",
-    price: "249 PLN",
-    tag: "TOYS",
-    color: "bg-amber",
-  },
-];
+interface HomeProduct {
+  id: string;
+  name: string;
+  slug: string;
+  price: string;
+  image_url: string;
+  category?: {
+    name: string;
+    slug: string;
+  };
+}
+
+interface ProductsResponse {
+  data: HomeProduct[];
+}
+
+const productColors = ["bg-cyan", "bg-green", "bg-amber"];
 
 const collections = [
-  "Elektronika",
-  "Dom i kuchnia",
-  "Ksiazki",
-  "Zabawki",
-  "Sport",
-  "Beauty",
-  "Motoryzacja",
-  "Gaming",
+  {
+    label: "Elektronika",
+    categoryId: "electronics",
+  },
+  {
+    label: "Dom",
+    categoryId: "home",
+  },
+  {
+    label: "Gaming",
+    categoryId: "gaming",
+  },
+  {
+    label: "Zabawki",
+    categoryId: "toys",
+  },
+  {
+    label: "Sport",
+    categoryId: "sport",
+  },
+  {
+    label: "Beauty",
+    categoryId: "beauty",
+  },
 ];
 
 const benefits = [
@@ -63,7 +74,31 @@ const benefits = [
   },
 ];
 
-export default function Home() {
+const getRandomProducts = async () => {
+  try {
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+    const response = await fetch(`${apiUrl}/products?limit=50`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const productsResponse = (await response.json()) as ProductsResponse;
+
+    return [...productsResponse.data]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+  } catch {
+    return [];
+  }
+};
+
+export default async function Home() {
+  const products = await getRandomProducts();
+
   return (
     <main className="scanlines flex-1 overflow-x-hidden bg-base text-text">
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-4 py-10 sm:px-6 md:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:px-10">
@@ -75,19 +110,13 @@ export default function Home() {
             Wszystko, czego szukasz, w jednym sklepie.
           </h1>
           <p className="mt-6 max-w-xl text-body text-muted-foreground">
-            Buyly to marketplace dla codziennych zakupow: elektronika, dom,
-            ksiazki, zabawki, gaming, sport i okazje w jednym miejscu.
+            Buyly to marketplace dla codziennych zakupów: elektronika, dom,
+            książki, zabawki, gaming, sport i okazje w jednym miejscu.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button className="bg-cyan text-black hover:bg-cyan-dim">
               <Link href="/products">Zobacz okazje</Link>
               <ArrowRight />
-            </Button>
-            <Button
-              variant="outline"
-              className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
-            >
-              Kategorie
             </Button>
           </div>
         </Reveal>
@@ -146,14 +175,19 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-px px-4 py-8 sm:grid-cols-2 sm:px-6 md:grid-cols-4 lg:px-10">
           {collections.map((collection, index) => (
             <Reveal
-              className="border-hairline border-border bg-base px-4 py-6 hover:border-cyan cursor-pointer transition-colors"
+              className="border-hairline border-border bg-base transition-colors hover:border-cyan"
               delay={index * 0.02}
-              key={collection}
+              key={collection.categoryId}
             >
-              <p className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
-                {"// "}
-                {collection}
-              </p>
+              <Link
+                className="block px-4 py-6"
+                href={`/products?categoryId=${collection.categoryId}`}
+              >
+                <p className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
+                  {"// "}
+                  {collection.label}
+                </p>
+              </Link>
             </Reveal>
           ))}
         </div>
@@ -166,45 +200,54 @@ export default function Home() {
               {"// produkty"}
             </p>
             <h2 className="mt-3 font-display text-2xl font-extrabold text-text-bright sm:text-3xl">
-              Popularne produkty z roznych kategorii.
+              Popularne produkty z różnych kategorii.
             </h2>
           </div>
           <p className="max-w-md text-body text-muted-foreground md:text-right">
             Przeglądaj najpopularniejsze produkty z elektroniki, domu, hobby,
-            sportu, gamingu i codziennych zakupow. Najlepsze oferty w jednym
+            sportu, gamingu i codziennych zakupów. Najlepsze oferty w jednym
             miejscu.
           </p>
         </div>
 
         <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
+          {products.map((product, index) => (
             <StaggerItem
               className="group border-hairline border-border bg-surface p-3 transition-colors hover:border-cyan"
-              key={product.name}
+              key={product.id}
             >
-              <article>
-              <div className="relative mb-4 flex aspect-[4/3] items-center justify-center overflow-hidden bg-elevated">
-                <div className="absolute left-3 top-3 border-hairline border-cyan bg-cyan-bg px-2 py-1 font-mono text-label font-bold text-cyan">
-                  {product.tag}
-                </div>
-                <div
-                  className={`h-24 w-24 ${product.color} opacity-80 transition-transform group-hover:scale-110`}
-                />
-                <div className="absolute bottom-5 h-2 w-2/3 bg-border-strong" />
-              </div>
-              <p className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
-                {"// "}
-                {product.brand}
-              </p>
-              <div className="mt-2 flex items-end justify-between gap-4">
-                <h3 className="font-display text-xl font-bold leading-tight text-text-bright">
-                  {product.name}
-                </h3>
-                <p className="font-mono text-price font-bold text-cyan">
-                  {product.price}
-                </p>
-              </div>
-              </article>
+              <Link className="block" href={`/products/${product.slug}`}>
+                <article>
+                  <div className="relative mb-4 flex aspect-[4/3] items-center justify-center overflow-hidden bg-elevated">
+                    <div className="absolute left-3 top-3 border-hairline border-cyan bg-cyan-bg px-2 py-1 font-mono text-label font-bold text-cyan">
+                      {product.category?.name ?? "Produkt"}
+                    </div>
+                    {product.image_url ? (
+                      <div
+                        aria-label={product.name}
+                        className="h-full w-full bg-cover bg-center"
+                        role="img"
+                        style={{ backgroundImage: `url(${product.image_url})` }}
+                      />
+                    ) : null}
+                  </div>
+                  <p className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
+                    {"// "}
+                    {product.category?.slug ?? "buyly"}
+                  </p>
+                  <div className="mt-2 flex items-end justify-between gap-4">
+                    <h3 className="font-display text-xl font-bold leading-tight text-text-bright">
+                      {product.name}
+                    </h3>
+                    <p className="font-mono text-price font-bold text-cyan">
+                      {Number(product.price).toLocaleString("pl-PL", {
+                        currency: "PLN",
+                        style: "currency",
+                      })}
+                    </p>
+                  </div>
+                </article>
+              </Link>
             </StaggerItem>
           ))}
         </Stagger>

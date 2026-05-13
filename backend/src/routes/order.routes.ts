@@ -3,6 +3,7 @@ import {
   createNewOrder,
   getAllOrders,
   getUserOrders,
+  removeOrder,
   updateOrder,
 } from "../controllers/order.controller.js";
 import { roleMiddleware } from "../middleware/role.middleware.js";
@@ -35,6 +36,12 @@ router.patch(
   validateRequest(updateOrderStatusSchema),
   roleMiddleware(["ADMIN"]),
   updateOrder,
+);
+router.delete(
+  "/:id",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  removeOrder,
 );
 
 export default router;

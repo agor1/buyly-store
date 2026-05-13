@@ -1,29 +1,68 @@
 import { prisma } from "../lib/prisma.js";
 import { OrderData, OrderStatus } from "../types/order.types.js";
 
+interface GetOrdersOptions {
+  page: number;
+  limit: number;
+  search?: string;
+}
+
 // GET all orders with user and product details
-export const getOrders = async () => {
-  return await prisma.order.findMany({
-    include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
+export const getOrders = async ({ page, limit, search }: GetOrdersOptions) => {
+  const skip = (page - 1) * limit;
+  const where = search
+    ? {
+        OR: [
+          { id: { contains: search, mode: "insensitive" as const } },
+          {
+            user: {
+              email: { contains: search, mode: "insensitive" as const },
+            },
+          },
+        ],
+      }
+    : {};
+
+  const [data, total] = await prisma.$transaction([
+    prisma.order.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
         },
-      },
-      order_items: {
-        include: {
-          product: {
-            select: {
-              id: true,
-              name: true,
-              price: true,
+        order_items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                price: true,
+              },
             },
           },
         },
       },
+      orderBy: {
+        created_at: "desc",
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  return {
+    data,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
     },
-  });
+  };
 };
 
 // CREATE new order
@@ -85,6 +124,13 @@ export const updateOrderStatus = async (
   return await prisma.order.update({
     where: { id: orderId },
     data: { status },
+  });
+};
+
+// DELETE order with its items
+export const deleteOrder = async (orderId: string) => {
+  return await prisma.order.delete({
+    where: { id: orderId },
   });
 };
 

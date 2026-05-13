@@ -57,7 +57,7 @@ export default function RegisterPage() {
               {"// rejestracja"}
             </p>
             <h1 className="mt-4 font-display text-4xl font-extrabold leading-none text-text-bright sm:text-5xl">
-              Stworz konto w Buyly.
+              Stwórz konto w Buyly.
             </h1>
             <p className="mt-5 text-body text-muted-foreground">
               Zapisz swoje dane, szybciej składaj zamówienia i wracaj do
@@ -106,7 +106,7 @@ export default function RegisterPage() {
                   className="font-mono uppercase tracking-[0.14em] text-cyan"
                   htmlFor="password"
                 >
-                  Haslo
+                  Hasło
                 </Label>
                 <Input
                   className="h-11 border-border bg-base text-text-bright placeholder:text-muted-foreground focus-visible:border-cyan focus-visible:ring-cyan/30"
@@ -122,7 +122,7 @@ export default function RegisterPage() {
                   className="font-mono uppercase tracking-[0.14em] text-cyan"
                   htmlFor="repeat-password"
                 >
-                  Powtorz haslo
+                  Powtórz hasło
                 </Label>
                 <Input
                   className="h-11 border-border bg-base text-text-bright placeholder:text-muted-foreground focus-visible:border-cyan focus-visible:ring-cyan/30"
@@ -146,14 +146,14 @@ export default function RegisterPage() {
                 type="submit"
                 disabled={loading}
               >
-                Utworz konto
+                Utwórz konto
                 <ArrowRight />
               </Button>
               <Link
                 className="text-caption uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-cyan"
                 href="/login"
               >
-                Masz juz konto?
+                Masz już konto?
               </Link>
             </div>
           </form>

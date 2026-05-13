@@ -23,6 +23,14 @@ const statusLabels: Record<Order["status"], string> = {
   CANCELLED: "Anulowane",
 };
 
+const statusClassNames: Record<Order["status"], string> = {
+  PENDING: "border-amber bg-amber-bg text-amber",
+  CONFIRMED: "border-cyan bg-cyan-bg text-cyan",
+  SHIPPED: "border-blue-500 bg-blue-500/10 text-blue-400",
+  DELIVERED: "border-green bg-green-bg text-green",
+  CANCELLED: "border-red-500 bg-red-500/10 text-red-400",
+};
+
 const shippingLabels: Record<string, string> = {
   courier: "Kurier",
   parcel_locker: "Paczkomat",
@@ -137,7 +145,9 @@ export default function OrdersPage() {
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="border border-cyan bg-cyan-bg px-2 py-1 font-mono text-label font-bold uppercase tracking-[0.12em] text-cyan">
+                        <span
+                          className={`border px-2 py-1 font-mono text-label font-bold uppercase tracking-[0.12em] ${statusClassNames[order.status]}`}
+                        >
                           {statusLabels[order.status]}
                         </span>
                         <span className="font-mono text-xs text-muted-foreground">

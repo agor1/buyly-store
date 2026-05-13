@@ -89,7 +89,7 @@ export default function LoginPage() {
               {"// logowanie"}
             </p>
             <h1 className="mt-4 font-display text-4xl font-extrabold leading-none text-text-bright sm:text-5xl">
-              Zaloguj sie do Buyly.
+              Zaloguj się do Buyly.
             </h1>
             <p className="mt-5 text-body text-muted-foreground">
               Kontynuuj zakupy, sprawdź zamówienia i zarządzaj swoim kontem.
@@ -123,7 +123,7 @@ export default function LoginPage() {
                   className="font-mono uppercase tracking-[0.14em] text-cyan"
                   htmlFor="password"
                 >
-                  Haslo
+                  Hasło
                 </Label>
                 <Input
                   className="h-11 border-border bg-base text-text-bright placeholder:text-muted-foreground focus-visible:border-cyan focus-visible:ring-cyan/30"

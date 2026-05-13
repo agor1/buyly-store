@@ -67,16 +67,15 @@ export default function Navbar() {
   );
 
   const handleLogout = async () => {
-    router.replace("/");
     await logout();
-    router.refresh();
+    router.replace("/login");
   };
 
   return (
     <motion.nav
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1 }}
       className="sticky top-0 z-40 flex h-16 w-full items-center justify-between gap-3 border-b border-border bg-base/90 px-4 text-white backdrop-blur sm:px-6"
-      initial={{ opacity: 0, y: -10 }}
+      initial={{ opacity: 0 }}
       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
     >
       <Link
@@ -329,6 +328,11 @@ export default function Navbar() {
                   <DropdownMenuItem asChild>
                     <Link href="/profile/settings">Ustawienia</Link>
                   </DropdownMenuItem>
+                  {user?.role === "ADMIN" ? (
+                    <DropdownMenuItem asChild>
+                      <Link href="/panel">Panel admina</Link>
+                    </DropdownMenuItem>
+                  ) : null}
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
