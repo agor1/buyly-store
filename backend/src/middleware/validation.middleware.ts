@@ -25,3 +25,28 @@ export const validateRequest = (schema: ZodSchema) => {
     }
   };
 };
+
+export const validateQuery = (schema: ZodSchema) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validatedData = schema.parse(req.query);
+      res.locals.query = validatedData;
+
+      next();
+    } catch (error: any) {
+      if (error.issues) {
+        const formattedErrors = error.issues.map((issue: any) => ({
+          field: issue.path.join("."),
+          message: issue.message,
+        }));
+
+        return res.status(400).json({
+          error: "Podaj poprawne parametry zapytania",
+          details: formattedErrors,
+        });
+      }
+
+      res.status(400).json({ error: "Invalid query" });
+    }
+  };
+};

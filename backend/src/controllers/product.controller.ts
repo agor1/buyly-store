@@ -6,6 +6,7 @@ import {
   deleteProduct,
   updateProduct,
 } from "../services/product.service.js";
+import type { GetProductsQuery } from "../schemas/product.schemas.js";
 
 // Get product controller
 export const getSingleProduct = async (req: Request, res: Response) => {
@@ -30,29 +31,8 @@ export const getSingleProduct = async (req: Request, res: Response) => {
 // Get all products controller
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
-    const search = typeof req.query.search === "string" ? req.query.search : "";
-    const categoryId =
-      typeof req.query.categoryId === "string" ? req.query.categoryId : "";
-    const minPrice = Number(req.query.minPrice);
-    const maxPrice = Number(req.query.maxPrice);
-    const sort =
-      req.query.sort === "price-asc" ||
-      req.query.sort === "price-desc" ||
-      req.query.sort === "newest"
-        ? req.query.sort
-        : "relevance";
-
-    const products = await getProducts({
-      page,
-      limit,
-      search: search.trim() || undefined,
-      categoryId: categoryId.trim() || undefined,
-      minPrice: Number.isFinite(minPrice) ? minPrice : undefined,
-      maxPrice: Number.isFinite(maxPrice) ? maxPrice : undefined,
-      sort,
-    });
+    const query = res.locals.query as GetProductsQuery;
+    const products = await getProducts(query);
 
     res.status(200).json(products);
   } catch (error) {

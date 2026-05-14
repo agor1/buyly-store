@@ -82,7 +82,10 @@ export const createProduct = async (payload: CreateProductPayload) => {
   }
 };
 
-export const updateProduct = async (id: string, payload: CreateProductPayload) => {
+export const updateProduct = async (
+  id: string,
+  payload: CreateProductPayload,
+) => {
   try {
     const response = await api.put<Product>(`/products/${id}`, payload);
     return response.data;

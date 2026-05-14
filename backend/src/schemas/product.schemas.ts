@@ -23,4 +23,37 @@ export const createProductSchema = z.object({
     }),
 });
 
+const optionalTrimmedString = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value) => value || undefined);
+
+const optionalPriceQuery = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  z.coerce.number().min(0, "Cena nie może być ujemna").optional(),
+);
+
+export const getProductsQuerySchema = z
+  .object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(50).default(10),
+    search: optionalTrimmedString,
+    categoryId: optionalTrimmedString,
+    minPrice: optionalPriceQuery,
+    maxPrice: optionalPriceQuery,
+    sort: z
+      .enum(["relevance", "price-asc", "price-desc", "newest"])
+      .default("relevance"),
+  })
+  .refine(
+    ({ minPrice, maxPrice }) =>
+      minPrice === undefined || maxPrice === undefined || minPrice <= maxPrice,
+    {
+      message: "Cena minimalna nie może być większa od maksymalnej",
+      path: ["minPrice"],
+    },
+  );
+
 export type CreateProductData = z.infer<typeof createProductSchema>;
+export type GetProductsQuery = z.infer<typeof getProductsQuerySchema>;
