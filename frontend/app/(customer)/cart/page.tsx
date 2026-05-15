@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   ArrowRight,
@@ -32,6 +33,7 @@ const paymentOptions = [
 ];
 
 export default function CartPage() {
+  const router = useRouter();
   const {
     clearCart,
     error: cartError,
@@ -44,7 +46,6 @@ export default function CartPage() {
   const [paymentType, setPaymentType] = useState(paymentOptions[0].value);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
-  const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
   const totalPrice = items.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -61,7 +62,6 @@ export default function CartPage() {
 
   const handleCreateOrder = async () => {
     setOrderError(null);
-    setSuccessOrderId(null);
 
     if (items.length === 0) {
       setOrderError("Koszyk jest pusty.");
@@ -103,7 +103,16 @@ export default function CartPage() {
 
       await clearCart();
       setShippingAddress("");
-      setSuccessOrderId(order.id);
+
+      const params = new URLSearchParams({
+        orderId: order.id,
+        total: String(orderTotal),
+        items: String(totalItems),
+        shipping: selectedShipping?.label ?? result.data.shippingType,
+        payment: selectedPayment?.label ?? result.data.paymentType,
+      });
+
+      router.push(`/checkout/success?${params.toString()}`);
     } catch (error) {
       const message =
         axios.isAxiosError(error) && error.response?.data?.error
@@ -123,11 +132,6 @@ export default function CartPage() {
           <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
             {"// koszyk"}
           </p>
-          {successOrderId ? (
-            <div className="mt-5 border border-green bg-green-bg p-4 text-sm text-green">
-              Zamówienie zostało złożone. Numer: {successOrderId}
-            </div>
-          ) : null}
           {orderError ? (
             <div className="mt-5 border border-amber bg-amber-bg p-4 text-sm text-amber">
               {orderError}
