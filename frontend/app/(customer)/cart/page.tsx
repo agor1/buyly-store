@@ -16,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { createOrder } from "@/lib/api/orders";
 import { formatPrice } from "@/lib/product-utils";
+import { checkoutFormSchema, getFirstZodError } from "@/lib/schemas/forms";
 import { useCartStore } from "@/lib/store/cart-store";
 
 const shippingOptions = [
@@ -59,8 +60,6 @@ export default function CartPage() {
   const orderTotal = totalPrice + shippingPrice;
 
   const handleCreateOrder = async () => {
-    const trimmedAddress = shippingAddress.trim();
-
     setOrderError(null);
     setSuccessOrderId(null);
 
@@ -69,8 +68,14 @@ export default function CartPage() {
       return;
     }
 
-    if (!trimmedAddress) {
-      setOrderError("Podaj adres dostawy.");
+    const result = checkoutFormSchema.safeParse({
+      shippingAddress,
+      shippingType,
+      paymentType,
+    });
+
+    if (!result.success) {
+      setOrderError(getFirstZodError(result.error));
       return;
     }
 
@@ -90,9 +95,9 @@ export default function CartPage() {
       setIsSubmitting(true);
 
       const order = await createOrder({
-        shippingAddress: trimmedAddress,
-        shippingType,
-        paymentType,
+        shippingAddress: result.data.shippingAddress,
+        shippingType: result.data.shippingType,
+        paymentType: result.data.paymentType,
         items: orderItems,
       });
 

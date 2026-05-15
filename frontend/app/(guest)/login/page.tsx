@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import { getFirstZodError, loginFormSchema } from "@/lib/schemas/forms";
 
 export default function LoginPage() {
   const { login, loading, error } = useAuth();
@@ -22,13 +23,15 @@ export default function LoginPage() {
     e.preventDefault();
     setFormError(null);
 
-    if (!email || !password) {
-      setFormError("Wszystkie pola są wymagane");
+    const result = loginFormSchema.safeParse({ email, password });
+
+    if (!result.success) {
+      setFormError(getFirstZodError(result.error));
       return;
     }
 
     try {
-      await login({ email, password });
+      await login(result.data);
       router.push("/");
     } catch {
       setFormError(error || "Logowanie nie powiodło się");

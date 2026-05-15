@@ -39,6 +39,7 @@ import {
   type Product,
   type ProductSort,
 } from "@/lib/api/products";
+import { getFirstZodError, priceFilterSchema } from "@/lib/schemas/forms";
 
 const productsPerPage = 9;
 
@@ -71,6 +72,7 @@ export default function ProductSearchView() {
   const [areCategoriesLoading, setAreCategoriesLoading] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [priceFilterError, setPriceFilterError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -161,15 +163,18 @@ export default function ProductSearchView() {
   };
 
   const handlePriceFilter = () => {
-    const minPrice = Number(minPriceInput);
-    const maxPrice = Number(maxPriceInput);
-
-    setPriceRange({
-      minPrice:
-        minPriceInput && Number.isFinite(minPrice) ? minPrice : undefined,
-      maxPrice:
-        maxPriceInput && Number.isFinite(maxPrice) ? maxPrice : undefined,
+    const result = priceFilterSchema.safeParse({
+      minPrice: minPriceInput,
+      maxPrice: maxPriceInput,
     });
+
+    if (!result.success) {
+      setPriceFilterError(getFirstZodError(result.error));
+      return;
+    }
+
+    setPriceFilterError(null);
+    setPriceRange(result.data);
     setCurrentPage(1);
   };
 
@@ -271,6 +276,11 @@ export default function ProductSearchView() {
                     value={maxPriceInput}
                   />
                 </div>
+                {priceFilterError ? (
+                  <p className="mt-2 text-caption text-amber">
+                    {priceFilterError}
+                  </p>
+                ) : null}
               </div>
 
               <Button

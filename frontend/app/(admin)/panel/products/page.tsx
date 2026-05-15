@@ -48,6 +48,7 @@ import {
   type Product,
 } from "@/lib/api/products";
 import { formatPrice } from "@/lib/product-utils";
+import { getFirstZodError, productFormSchema } from "@/lib/schemas/forms";
 
 const productsPerPage = 9;
 
@@ -208,20 +209,17 @@ export default function AdminProductsPage() {
     setProductSuccess(null);
 
     try {
-      const payload = {
-        name: productForm.name.trim(),
-        slug: productForm.slug.trim(),
-        description: productForm.description.trim() || undefined,
-        imageUrl: productForm.imageUrl.trim() || undefined,
-        price: Number(productForm.price),
-        stock: Number(productForm.stock),
-        categoryId: productForm.categoryId,
-      };
+      const result = productFormSchema.safeParse(productForm);
+
+      if (!result.success) {
+        setProductError(getFirstZodError(result.error));
+        return;
+      }
 
       if (editingProductId) {
-        await updateProduct(editingProductId, payload);
+        await updateProduct(editingProductId, result.data);
       } else {
-        await createProduct(payload);
+        await createProduct(result.data);
       }
 
       resetProductForm();

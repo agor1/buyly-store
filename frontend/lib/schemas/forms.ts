@@ -1,0 +1,91 @@
+import { z } from "zod";
+
+export const loginFormSchema = z.object({
+  email: z.string().trim().min(1, "Email jest wymagany").email("Podaj poprawny email"),
+  password: z.string().min(1, "Hasło jest wymagane"),
+});
+
+export const registerFormSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, "Nazwa jest wymagana")
+      .min(3, "Nazwa musi mieć minimum 3 znaki"),
+    email: z.string().trim().min(1, "Email jest wymagany").email("Podaj poprawny email"),
+    password: z.string().min(6, "Hasło musi mieć co najmniej 6 znaków"),
+    repeatPassword: z.string().min(1, "Powtórz hasło"),
+  })
+  .refine((data) => data.password === data.repeatPassword, {
+    message: "Hasła nie są identyczne",
+    path: ["repeatPassword"],
+  });
+
+export const profileFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Nazwa użytkownika jest wymagana")
+    .min(3, "Nazwa musi mieć minimum 3 znaki"),
+});
+
+export const passwordFormSchema = z.object({
+  currentPassword: z.string().min(1, "Obecne hasło jest wymagane"),
+  newPassword: z.string().min(6, "Nowe hasło musi mieć co najmniej 6 znaków"),
+});
+
+export const checkoutFormSchema = z.object({
+  shippingAddress: z
+    .string()
+    .trim()
+    .min(1, "Podaj adres dostawy")
+    .min(10, "Adres dostawy musi mieć minimum 10 znaków"),
+  shippingType: z.enum(["courier", "parcel_locker", "pickup"]),
+  paymentType: z.enum(["card", "blik", "cash_on_delivery"]),
+});
+
+export const productFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Nazwa produktu jest wymagana")
+    .min(3, "Nazwa musi mieć minimum 3 znaki"),
+  slug: z.string().trim().min(1, "Slug jest wymagany"),
+  description: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => value || undefined),
+  imageUrl: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value) => value || undefined)
+    .pipe(z.string().url("Podaj poprawny adres URL zdjęcia").optional()),
+  price: z.coerce.number().min(0, "Cena nie może być ujemna"),
+  stock: z.coerce.number().int("Stan magazynowy musi być liczbą całkowitą").min(0, "Stan magazynowy nie może być ujemny"),
+  categoryId: z.string().min(1, "Kategoria jest wymagana"),
+});
+
+export const priceFilterSchema = z
+  .object({
+    minPrice: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.coerce.number().min(0, "Cena minimalna nie może być ujemna").optional(),
+    ),
+    maxPrice: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.coerce.number().min(0, "Cena maksymalna nie może być ujemna").optional(),
+    ),
+  })
+  .refine(
+    ({ minPrice, maxPrice }) =>
+      minPrice === undefined || maxPrice === undefined || minPrice <= maxPrice,
+    {
+      message: "Cena minimalna nie może być większa od maksymalnej",
+      path: ["minPrice"],
+    },
+  );
+
+export const getFirstZodError = (error: z.ZodError) =>
+  error.issues[0]?.message ?? "Podaj poprawne dane";

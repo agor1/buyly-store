@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useState } from "react";
+import { getFirstZodError, registerFormSchema } from "@/lib/schemas/forms";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -24,23 +25,24 @@ export default function RegisterPage() {
     e.preventDefault();
     setFormError(null);
 
-    if (!name || !email || !password || !repeatPassword) {
-      setFormError("Wszystkie pola są wymagane");
-      return;
-    }
+    const result = registerFormSchema.safeParse({
+      name,
+      email,
+      password,
+      repeatPassword,
+    });
 
-    if (password !== repeatPassword) {
-      setFormError("Hasła nie są identyczne");
-      return;
-    }
-
-    if (password.length < 6) {
-      setFormError("Hasło musi mieć co najmniej 6 znaków");
+    if (!result.success) {
+      setFormError(getFirstZodError(result.error));
       return;
     }
 
     try {
-      await register({ email, password, name });
+      await register({
+        email: result.data.email,
+        password: result.data.password,
+        name: result.data.name,
+      });
 
       router.push("/");
     } catch {

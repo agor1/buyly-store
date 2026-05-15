@@ -18,6 +18,11 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { updateCurrentUser } from "@/lib/api/auth";
+import {
+  getFirstZodError,
+  passwordFormSchema,
+  profileFormSchema,
+} from "@/lib/schemas/forms";
 import { useAuthStore } from "@/lib/store/auth-store";
 
 export default function ProfilePage() {
@@ -59,17 +64,17 @@ export default function ProfilePage() {
     setProfileError(null);
     setProfileSuccess(null);
 
-    const trimmedName = profileName.trim();
+    const result = profileFormSchema.safeParse({ name: profileName });
 
-    if (!trimmedName) {
-      setProfileError("Nazwa użytkownika jest wymagana");
+    if (!result.success) {
+      setProfileError(getFirstZodError(result.error));
       return;
     }
 
     setIsProfileSaving(true);
 
     try {
-      const updatedUser = await updateCurrentUser({ name: trimmedName });
+      const updatedUser = await updateCurrentUser({ name: result.data.name });
       saveUser(updatedUser);
       setName(updatedUser.name || "");
       setProfileSuccess("Nazwa użytkownika została zapisana");
@@ -87,8 +92,13 @@ export default function ProfilePage() {
     setPasswordError(null);
     setPasswordSuccess(null);
 
-    if (!currentPassword || !newPassword) {
-      setPasswordError("Obecne i nowe hasło są wymagane");
+    const result = passwordFormSchema.safeParse({
+      currentPassword,
+      newPassword,
+    });
+
+    if (!result.success) {
+      setPasswordError(getFirstZodError(result.error));
       return;
     }
 
@@ -96,8 +106,8 @@ export default function ProfilePage() {
 
     try {
       const updatedUser = await updateCurrentUser({
-        currentPassword,
-        newPassword,
+        currentPassword: result.data.currentPassword,
+        newPassword: result.data.newPassword,
       });
       saveUser(updatedUser);
       setCurrentPassword("");
