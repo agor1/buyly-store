@@ -7,26 +7,26 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import type { ProductSort } from "@/lib/api/products";
+import { PRODUCT_SORT, type ProductSort } from "@/lib/api/products";
 
 const sortOptions = [
   {
-    value: "relevance",
+    value: PRODUCT_SORT.RELEVANCE,
     label: "Trafność",
     text: "Najlepsze dopasowanie do zapytania",
   },
   {
-    value: "price-asc",
+    value: PRODUCT_SORT.PRICE_ASC,
     label: "Cena rosnąco",
     text: "Od najtańszych produktów",
   },
   {
-    value: "price-desc",
+    value: PRODUCT_SORT.PRICE_DESC,
     label: "Cena malejąco",
     text: "Od najdroższych produktów",
   },
   {
-    value: "newest",
+    value: PRODUCT_SORT.NEWEST,
     label: "Najnowsze",
     text: "Ostatnio dodane oferty",
   },

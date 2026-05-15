@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import Footer from "@/components/layout/footer";
 import CategoryFilter from "@/components/products/category-filter";
 import ProductList from "@/components/products/product-list";
+import ProductsListSkeleton from "@/components/products/products-list-skeleton";
 import SortMenu from "@/components/products/sort-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,8 @@ import { getCategories, type Category } from "@/lib/api/categories";
 import {
   getProducts,
   type PaginationMeta,
+  PRODUCT_SORT,
+  PRODUCT_SORT_VALUES,
   type Product,
   type ProductSort,
 } from "@/lib/api/products";
@@ -300,11 +303,17 @@ export default function ProductSearchView() {
               />
             </div>
 
-            <ProductList
-              error={productsError}
-              isLoading={isProductsLoading}
-              products={products}
-            />
+            {isProductsLoading ? <ProductsListSkeleton /> : null}
+
+            {!isProductsLoading && productsError ? (
+              <div className="border-hairline border-border bg-surface p-6 text-body text-muted-foreground">
+                {productsError}
+              </div>
+            ) : null}
+
+            {!isProductsLoading && !productsError ? (
+              <ProductList products={products} />
+            ) : null}
 
             {paginationMeta.totalPages > 1 ? (
               <Pagination className="mt-6 border-hairline border-border bg-surface p-3">
@@ -371,9 +380,11 @@ export default function ProductSearchView() {
 }
 
 function getValidSort(sort: string | null): ProductSort {
-  if (sort === "price-asc" || sort === "price-desc" || sort === "newest") {
-    return sort;
+  const productSort = sort as ProductSort;
+
+  if (PRODUCT_SORT_VALUES.includes(productSort)) {
+    return productSort;
   }
 
-  return "relevance";
+  return PRODUCT_SORT.RELEVANCE;
 }

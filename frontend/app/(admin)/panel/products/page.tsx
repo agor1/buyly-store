@@ -42,6 +42,7 @@ import {
   createProduct,
   deleteProduct,
   getProducts,
+  PRODUCT_SORT,
   updateProduct,
   type PaginationMeta,
   type Product,
@@ -122,7 +123,7 @@ export default function AdminProductsPage() {
           page: productPage,
           limit: productsPerPage,
           search: productSearch.trim() || undefined,
-          sort: "newest",
+          sort: PRODUCT_SORT.NEWEST,
         });
 
         if (isMounted) {

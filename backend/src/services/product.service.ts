@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma.js";
 import { ensureCategoryExists } from "./category.service.js";
 import { ProductData } from "../types/product.types.js";
 import { NotFoundError } from "../errors/app-error.js";
+import { PRODUCT_SORT, type ProductSort } from "../constants/product-sort.js";
 
 interface GetProductsOptions {
   page: number;
@@ -10,7 +11,7 @@ interface GetProductsOptions {
   categoryId?: string;
   minPrice?: number;
   maxPrice?: number;
-  sort?: "relevance" | "price-asc" | "price-desc" | "newest";
+  sort?: ProductSort;
 }
 
 export const getProduct = async (slug: string) => {
@@ -39,13 +40,13 @@ export const getProducts = async ({
   categoryId,
   minPrice,
   maxPrice,
-  sort = "relevance",
+  sort = PRODUCT_SORT.RELEVANCE,
 }: GetProductsOptions) => {
   const skip = (page - 1) * limit;
   const orderBy =
-    sort === "price-asc"
+    sort === PRODUCT_SORT.PRICE_ASC
       ? { price: "asc" as const }
-      : sort === "price-desc"
+      : sort === PRODUCT_SORT.PRICE_DESC
         ? { price: "desc" as const }
         : { created_at: "desc" as const };
   const where = {

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { STATIC_CATEGORY_IDS } from "../constants/categories.js";
+import { PRODUCT_SORT, PRODUCT_SORT_VALUES } from "../constants/product-sort.js";
 
 export const createProductSchema = z.object({
   name: z
@@ -42,9 +43,7 @@ export const getProductsQuerySchema = z
     categoryId: optionalTrimmedString,
     minPrice: optionalPriceQuery,
     maxPrice: optionalPriceQuery,
-    sort: z
-      .enum(["relevance", "price-asc", "price-desc", "newest"])
-      .default("relevance"),
+    sort: z.enum(PRODUCT_SORT_VALUES).default(PRODUCT_SORT.RELEVANCE),
   })
   .refine(
     ({ minPrice, maxPrice }) =>
