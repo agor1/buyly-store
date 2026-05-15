@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { ensureCategoryExists } from "./category.service.js";
 import { ProductData } from "../types/product.types.js";
+import { NotFoundError } from "../errors/app-error.js";
 
 interface GetProductsOptions {
   page: number;
@@ -21,11 +22,11 @@ export const getProduct = async (slug: string) => {
   });
 
   if (!product) {
-    throw new Error("PRODUCT_NOT_FOUND");
+    throw new NotFoundError("Product not found");
   }
 
   if (!product.is_active) {
-    throw new Error("PRODUCT_IS_NOT_ACTIVE");
+    throw new NotFoundError("Product not found");
   }
 
   return product;
@@ -122,7 +123,7 @@ export const updateProduct = async (id: string, data: ProductData) => {
 
   const product = await prisma.product.findUnique({ where: { id } });
   if (!product) {
-    throw new Error("PRODUCT_NOT_FOUND");
+    throw new NotFoundError("Product not found");
   }
 
   const category = await ensureCategoryExists(categoryId);
@@ -148,7 +149,7 @@ export const deleteProduct = async (id: string) => {
   const product = await prisma.product.findUnique({ where: { id } });
 
   if (!product) {
-    throw new Error("PRODUCT_NOT_FOUND");
+    throw new NotFoundError("Product not found");
   }
 
   await prisma.product.delete({ where: { id } });

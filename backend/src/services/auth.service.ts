@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcryptjs";
 import { env } from "../config/env.js";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors/app-error.js";
 
 interface RegisterData {
   email: string;
@@ -26,7 +27,7 @@ export const registerUser = async (data: RegisterData) => {
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    throw new Error("EMAIL_EXISTS");
+    throw new BadRequestError("Email already in use");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -56,12 +57,12 @@ export const loginUser = async (data: LoginData) => {
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    throw new Error("INVALID_CREDENTIALS");
+    throw new UnauthorizedError("Invalid email or password");
   }
 
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
-    throw new Error("INVALID_CREDENTIALS");
+    throw new UnauthorizedError("Invalid email or password");
   }
 
   const token = jwt.sign(
@@ -89,7 +90,7 @@ export const getMe = async (userId: string) => {
     },
   });
   if (!user) {
-    throw new Error("USER_NOT_FOUND");
+    throw new NotFoundError("User not found");
   }
   return user;
 };
@@ -101,7 +102,7 @@ export const updateCurrentUser = async (
 ) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
-    throw new Error("USER_NOT_FOUND");
+    throw new NotFoundError("User not found");
   }
 
   const updateData: { name?: string; password_hash?: string } = {};
@@ -117,7 +118,7 @@ export const updateCurrentUser = async (
     );
 
     if (!valid) {
-      throw new Error("INVALID_CURRENT_PASSWORD");
+      throw new BadRequestError("Current password is invalid");
     }
 
     updateData.password_hash = await bcrypt.hash(data.newPassword, 10);
@@ -143,7 +144,7 @@ export const changeUserRole = async (
 ) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
-    throw new Error("USER_NOT_FOUND");
+    throw new NotFoundError("User not found");
   }
 
   const updatedUser = await prisma.user.update({

@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import { STATIC_CATEGORIES } from "../constants/categories.js";
+import { BadRequestError, NotFoundError } from "../errors/app-error.js";
 
 export const getCategories = async () => {
   return STATIC_CATEGORIES;
@@ -9,7 +10,7 @@ export const getCategory = async (slug: string) => {
   const category = STATIC_CATEGORIES.find((category) => category.slug === slug);
 
   if (!category) {
-    throw new Error("CATEGORY_NOT_FOUND");
+    throw new NotFoundError("Category not found");
   }
 
   return category;
@@ -19,7 +20,7 @@ export const getCategoryById = (id: string) => {
   const category = STATIC_CATEGORIES.find((category) => category.id === id);
 
   if (!category) {
-    throw new Error("CATEGORY_NOT_FOUND");
+    throw new BadRequestError("Invalid category ID");
   }
 
   return category;

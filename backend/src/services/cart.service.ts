@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma.js";
+import { BadRequestError, NotFoundError } from "../errors/app-error.js";
 
 const cartItemInclude = {
   product: {
@@ -38,7 +39,7 @@ export const addCartItem = async (
     });
 
     if (!product || !product.is_active) {
-      throw new Error("PRODUCT_NOT_FOUND");
+      throw new NotFoundError("Produkt nie istnieje.");
     }
 
     const existingItem = await tx.cartItem.findUnique({
@@ -53,7 +54,7 @@ export const addCartItem = async (
     const nextQuantity = (existingItem?.quantity ?? 0) + quantity;
 
     if (nextQuantity > product.stock) {
-      throw new Error("INSUFFICIENT_STOCK");
+      throw new BadRequestError("Brak wystarczającej ilości produktu w magazynie.");
     }
 
     await tx.cartItem.upsert({
@@ -104,11 +105,11 @@ export const updateCartItem = async (
     });
 
     if (!product || !product.is_active) {
-      throw new Error("PRODUCT_NOT_FOUND");
+      throw new NotFoundError("Produkt nie istnieje.");
     }
 
     if (quantity > product.stock) {
-      throw new Error("INSUFFICIENT_STOCK");
+      throw new BadRequestError("Brak wystarczającej ilości produktu w magazynie.");
     }
 
     const updated = await tx.cartItem.updateMany({
@@ -122,7 +123,7 @@ export const updateCartItem = async (
     });
 
     if (updated.count !== 1) {
-      throw new Error("CART_ITEM_NOT_FOUND");
+      throw new NotFoundError("Produktu nie ma w koszyku.");
     }
   });
 

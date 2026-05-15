@@ -1,4 +1,4 @@
-import express, { Express, Request, Response, NextFunction } from "express";
+import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import "dotenv/config";
 import { prisma } from "./src/lib/prisma.js";
@@ -9,6 +9,10 @@ import ordersRoutes from "./src/routes/order.routes.js";
 import cartRoutes from "./src/routes/cart.routes.js";
 import { authMiddleware } from "./src/middleware/auth.middleware.js";
 import cookieParser from "cookie-parser";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./src/middleware/error.middleware.js";
 
 const app: Express = express();
 const PORT = process.env.PORT || 5000;
@@ -28,12 +32,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check
 app.get("/health", authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const count = await prisma.user.count();
-    res.json({ status: "ok", userCount: count });
-  } catch (error) {
-    res.status(500).json({ error: "Database connection failed" });
-  }
+  const count = await prisma.user.count();
+  res.json({ status: "ok", userCount: count });
 });
 
 // Routes
@@ -43,18 +43,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", authMiddleware, cartRoutes);
 app.use("/api/orders", authMiddleware, ordersRoutes);
 
-// 404 Handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: "Route not found" });
-});
-
-// Error handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(err);
-  res.status(err.status || 500).json({
-    error: err.message || "Internal Server Error",
-  });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Server start
 app.listen(PORT, () => {

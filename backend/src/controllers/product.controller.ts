@@ -1,109 +1,61 @@
 import { Request, Response } from "express";
 import {
-  getProduct,
-  getProducts,
   addProduct,
   deleteProduct,
+  getProduct,
+  getProducts,
   updateProduct,
 } from "../services/product.service.js";
 import type { GetProductsQuery } from "../schemas/product.schemas.js";
 
-// Get product controller
 export const getSingleProduct = async (req: Request, res: Response) => {
-  try {
-    const { slug } = req.params;
-    const product = await getProduct(slug);
-    res.status(200).json(product);
-  } catch (error) {
-    if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") {
-      res.status(404).json({ error: "Product not found" });
-    } else if (
-      error instanceof Error &&
-      error.message === "PRODUCT_IS_NOT_ACTIVE"
-    ) {
-      res.status(404).json({ error: "Product not found" });
-    } else {
-      res.status(500).json({ error: "Failed to fetch product" });
-    }
-  }
+  const { slug } = req.params;
+  const product = await getProduct(slug);
+
+  res.status(200).json(product);
 };
 
-// Get all products controller
 export const getAllProducts = async (req: Request, res: Response) => {
-  try {
-    const query = res.locals.query as GetProductsQuery;
-    const products = await getProducts(query);
+  const query = res.locals.query as GetProductsQuery;
+  const products = await getProducts(query);
 
-    res.status(200).json(products);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch products" });
-  }
+  res.status(200).json(products);
 };
 
-// Create new product controller
 export const createProduct = async (req: Request, res: Response) => {
-  try {
-    const { name, slug, description, imageUrl, price, stock, categoryId } = req.body;
+  const { name, slug, description, imageUrl, price, stock, categoryId } = req.body;
+  const newProduct = await addProduct({
+    name,
+    slug,
+    description,
+    imageUrl,
+    price,
+    stock,
+    categoryId,
+  });
 
-    const newProduct = await addProduct({
-      name,
-      slug,
-      description,
-      imageUrl,
-      price,
-      stock,
-      categoryId,
-    });
-
-    res.status(201).json(newProduct);
-  } catch (error) {
-    if (error instanceof Error && error.message === "CATEGORY_NOT_FOUND") {
-      res.status(400).json({ error: "Invalid category ID" });
-    } else {
-      res.status(500).json({ error: "Failed to create product" });
-    }
-  }
+  res.status(201).json(newProduct);
 };
 
-// Update product controller
 export const updateProductById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { name, slug, description, imageUrl, price, stock, categoryId } = req.body;
-    const updatedProduct = await updateProduct(id, {
-      name,
-      slug,
-      description,
-      imageUrl,
-      price,
-      stock,
-      categoryId,
-    });
-    res.status(200).json(updatedProduct);
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "PRODUCT_NOT_FOUND") {
-        return res.status(404).json({ error: "Product not found" });
-      } else if (error.message === "CATEGORY_NOT_FOUND") {
-        return res.status(400).json({ error: "Invalid category" });
-      }
-    }
+  const { id } = req.params;
+  const { name, slug, description, imageUrl, price, stock, categoryId } = req.body;
+  const updatedProduct = await updateProduct(id, {
+    name,
+    slug,
+    description,
+    imageUrl,
+    price,
+    stock,
+    categoryId,
+  });
 
-    res.status(500).json({ error: "Failed to update product" });
-  }
+  res.status(200).json(updatedProduct);
 };
 
-// Delete product controller
 export const deleteProductById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    await deleteProduct(id);
-    res.status(204).send();
-  } catch (error) {
-    if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") {
-      res.status(404).json({ error: "Product not found" });
-    } else {
-      res.status(500).json({ error: "Failed to delete product" });
-    }
-  }
+  const { id } = req.params;
+  await deleteProduct(id);
+
+  res.status(204).send();
 };

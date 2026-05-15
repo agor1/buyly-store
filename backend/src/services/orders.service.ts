@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { Prisma } from "../generated/prisma/client.js";
 import { OrderData, OrderStatus } from "../types/order.types.js";
+import { BadRequestError, NotFoundError } from "../errors/app-error.js";
 
 interface GetOrdersOptions {
   page: number;
@@ -106,13 +107,13 @@ export const createOrder = async ({
     });
 
     if (products.length !== productIds.length) {
-      throw new Error("PRODUCT_NOT_FOUND");
+      throw new BadRequestError("Nie znaleziono produktu z koszyka.");
     }
 
     const inactiveProduct = products.find((product) => !product.is_active);
 
     if (inactiveProduct) {
-      throw new Error("PRODUCT_IS_NOT_ACTIVE");
+      throw new BadRequestError("Produkt nie jest juz dostepny.");
     }
 
     const productsById = new Map(
@@ -122,7 +123,7 @@ export const createOrder = async ({
     const totalPrice = items.reduce((sum, item) => {
       const product = productsById.get(item.productId);
       if (!product) {
-        throw new Error("PRODUCT_NOT_FOUND");
+        throw new BadRequestError("Nie znaleziono produktu z koszyka.");
       }
 
       return sum.add(product.price.mul(item.quantity));
@@ -145,7 +146,7 @@ export const createOrder = async ({
       });
 
       if (updatedProduct.count !== 1) {
-        throw new Error("INSUFFICIENT_STOCK");
+        throw new BadRequestError("Brak wystarczającej ilości produktu w magazynie.");
       }
     }
 
@@ -160,7 +161,7 @@ export const createOrder = async ({
           create: items.map((item) => {
             const product = productsById.get(item.productId);
             if (!product) {
-              throw new Error("PRODUCT_NOT_FOUND");
+              throw new BadRequestError("Nie znaleziono produktu z koszyka.");
             }
 
             return {
@@ -212,11 +213,11 @@ export const updateOrderStatus = async (
     });
 
     if (!order) {
-      throw new Error("ORDER_NOT_FOUND");
+      throw new NotFoundError("Order not found");
     }
 
     if (order.status === OrderStatus.CANCELLED && status !== OrderStatus.CANCELLED) {
-      throw new Error("ORDER_ALREADY_CANCELLED");
+      throw new BadRequestError("Cancelled order cannot be reactivated.");
     }
 
     if (status === OrderStatus.CANCELLED && order.status !== OrderStatus.CANCELLED) {
@@ -246,7 +247,7 @@ export const deleteOrder = async (orderId: string) => {
     });
 
     if (!order) {
-      throw new Error("ORDER_NOT_FOUND");
+      throw new NotFoundError("Order not found");
     }
 
     if (order.status !== OrderStatus.CANCELLED) {

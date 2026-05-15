@@ -6,95 +6,52 @@ import {
   removeCartItem,
   updateCartItem,
 } from "../services/cart.service.js";
+import { UnauthorizedError } from "../errors/app-error.js";
 import { AuthRequest } from "../types/authRequest.js";
 
-const handleCartError = (error: unknown, res: Response) => {
-  if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") {
-    return res.status(404).json({ error: "Produkt nie istnieje." });
+const requireUserId = (req: AuthRequest) => {
+  if (!req.userId) {
+    throw new UnauthorizedError();
   }
 
-  if (error instanceof Error && error.message === "CART_ITEM_NOT_FOUND") {
-    return res.status(404).json({ error: "Produktu nie ma w koszyku." });
-  }
-
-  if (error instanceof Error && error.message === "INSUFFICIENT_STOCK") {
-    return res.status(400).json({
-      error: "Brak wystarczającej ilości produktu w magazynie.",
-    });
-  }
-
-  return res.status(500).json({ error: "Nie udało się obsłużyć koszyka." });
+  return req.userId;
 };
 
 export const getUserCart = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+  const userId = requireUserId(req);
+  const cart = await getCart(userId);
 
-    const cart = await getCart(req.userId);
-    res.status(200).json(cart);
-  } catch (error) {
-    handleCartError(error, res);
-  }
+  res.status(200).json(cart);
 };
 
 export const addItemToCart = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+  const userId = requireUserId(req);
+  const { productId, quantity } = req.body;
+  const cart = await addCartItem(userId, productId, quantity ?? 1);
 
-    const { productId, quantity } = req.body;
-    const cart = await addCartItem(req.userId, productId, quantity ?? 1);
-
-    res.status(200).json(cart);
-  } catch (error) {
-    handleCartError(error, res);
-  }
+  res.status(200).json(cart);
 };
 
 export const updateItemInCart = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+  const userId = requireUserId(req);
+  const { productId } = req.params;
+  const { quantity } = req.body;
+  const cart = await updateCartItem(userId, productId, quantity);
 
-    const { productId } = req.params;
-    const { quantity } = req.body;
-    const cart = await updateCartItem(req.userId, productId, quantity);
-
-    res.status(200).json(cart);
-  } catch (error) {
-    handleCartError(error, res);
-  }
+  res.status(200).json(cart);
 };
 
 export const removeItemFromCart = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+  const userId = requireUserId(req);
+  const { productId } = req.params;
+  const cart = await removeCartItem(userId, productId);
 
-    const { productId } = req.params;
-    const cart = await removeCartItem(req.userId, productId);
-
-    res.status(200).json(cart);
-  } catch (error) {
-    handleCartError(error, res);
-  }
+  res.status(200).json(cart);
 };
 
 export const clearUserCart = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+  const userId = requireUserId(req);
+  const cart = await clearCart(userId);
 
-    const cart = await clearCart(req.userId);
-
-    res.status(200).json(cart);
-  } catch (error) {
-    handleCartError(error, res);
-  }
+  res.status(200).json(cart);
 };
