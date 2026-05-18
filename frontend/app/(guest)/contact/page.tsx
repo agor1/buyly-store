@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ChatCircleText,
   Clock,
@@ -5,12 +7,23 @@ import {
   MapPin,
   Phone,
   Question,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@phosphor-icons/react";
+import { useState } from "react";
 
 import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { sendContactMessage } from "@/lib/api/contact";
+import { getFirstZodError } from "@/lib/schemas/forms";
+import { z } from "zod";
+
+const contactFormSchema = z.object({
+  name: z.string().trim().min(2, "Podaj imię i nazwisko"),
+  email: z.string().trim().email("Podaj poprawny email"),
+  topic: z.string().trim().min(3, "Podaj temat wiadomości"),
+  message: z.string().trim().min(10, "Wiadomość musi mieć minimum 10 znaków"),
+});
 
 const contactChannels = [
   {
@@ -59,6 +72,50 @@ const helpfulInfo = [
 ];
 
 export default function ContactPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [topic, setTopic] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError(null);
+    setFormSuccess(null);
+
+    const result = contactFormSchema.safeParse({
+      name,
+      email,
+      topic,
+      message,
+    });
+
+    if (!result.success) {
+      setFormError(getFirstZodError(result.error));
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await sendContactMessage({
+        name: result.data.name,
+        email: result.data.email,
+        message: `Temat: ${result.data.topic}\n\n${result.data.message}`,
+      });
+      setName("");
+      setEmail("");
+      setTopic("");
+      setMessage("");
+      setFormSuccess("Wiadomość została wysłana. Odpowiemy najszybciej jak to możliwe.");
+    } catch {
+      setFormError("Nie udało się wysłać wiadomości. Spróbuj ponownie później.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className="scanlines flex-1 overflow-x-hidden bg-base text-text">
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-4 py-10 sm:px-6 md:py-12 lg:grid-cols-[0.9fr_1.1fr] lg:px-10">
@@ -110,7 +167,19 @@ export default function ContactPage() {
             </span>
           </div>
 
-          <form className="grid gap-5">
+          <form className="grid gap-5" onSubmit={handleSubmit}>
+            {formError ? (
+              <div className="border border-amber bg-amber-bg p-3 text-sm text-amber">
+                {formError}
+              </div>
+            ) : null}
+
+            {formSuccess ? (
+              <div className="border border-green bg-green-bg p-3 text-sm text-green">
+                {formSuccess}
+              </div>
+            ) : null}
+
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <label
@@ -122,8 +191,10 @@ export default function ContactPage() {
                 <Input
                   className="h-11 border-border bg-base text-text-bright placeholder:text-muted-foreground focus-visible:border-cyan focus-visible:ring-cyan/30"
                   id="name"
+                  onChange={(event) => setName(event.target.value)}
                   placeholder="Jan Kowalski"
                   type="text"
+                  value={name}
                 />
               </div>
               <div className="space-y-2">
@@ -136,8 +207,10 @@ export default function ContactPage() {
                 <Input
                   className="h-11 border-border bg-base text-text-bright placeholder:text-muted-foreground focus-visible:border-cyan focus-visible:ring-cyan/30"
                   id="email"
+                  onChange={(event) => setEmail(event.target.value)}
                   placeholder="adres@email.pl"
                   type="email"
+                  value={email}
                 />
               </div>
             </div>
@@ -152,8 +225,10 @@ export default function ContactPage() {
               <Input
                 className="h-11 border-border bg-base text-text-bright placeholder:text-muted-foreground focus-visible:border-cyan focus-visible:ring-cyan/30"
                 id="topic"
+                onChange={(event) => setTopic(event.target.value)}
                 placeholder="Np. status zamówienia #1234"
                 type="text"
+                value={topic}
               />
             </div>
 
@@ -167,7 +242,9 @@ export default function ContactPage() {
               <Textarea
                 className="min-h-36 border-border bg-base text-text-bright placeholder:text-muted-foreground focus-visible:border-cyan focus-visible:ring-cyan/30"
                 id="message"
+                onChange={(event) => setMessage(event.target.value)}
                 placeholder="Opisz, w czym możemy pomóc."
+                value={message}
               />
             </div>
 
@@ -178,9 +255,10 @@ export default function ContactPage() {
               </p>
               <Button
                 className="h-11 bg-cyan px-4 text-black hover:bg-cyan-dim"
-                type="button"
+                disabled={isSubmitting}
+                type="submit"
               >
-                Wyślij wiadomość
+                {isSubmitting ? "Wysyłanie..." : "Wyślij wiadomość"}
               </Button>
             </div>
           </form>

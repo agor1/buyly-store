@@ -7,6 +7,7 @@ import categoryRoutes from "./src/routes/category.routes.js";
 import productRoutes from "./src/routes/product.routes.js";
 import ordersRoutes from "./src/routes/order.routes.js";
 import cartRoutes from "./src/routes/cart.routes.js";
+import contactRoutes from "./src/routes/contact.routes.js";
 import { authMiddleware } from "./src/middleware/auth.middleware.js";
 import cookieParser from "cookie-parser";
 import {
@@ -42,6 +43,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", authMiddleware, cartRoutes);
 app.use("/api/orders", authMiddleware, ordersRoutes);
+app.use("/api/contact", contactRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
