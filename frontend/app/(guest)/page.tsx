@@ -208,7 +208,7 @@ export default async function Home() {
         </div>
 
         <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product, index) => (
+          {products.map((product) => (
             <StaggerItem
               className="group border-hairline border-border bg-surface p-3 transition-colors hover:border-cyan"
               key={product.id}

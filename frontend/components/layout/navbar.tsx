@@ -228,6 +228,16 @@ export default function Navbar() {
                       Ustawienia
                     </Link>
                   </DrawerClose>
+                  <DrawerClose asChild>
+                    {user?.role === "ADMIN" ? (
+                      <Link
+                        href="/panel"
+                        className="border-b border-border px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-cyan"
+                      >
+                        Panel admina
+                      </Link>
+                    ) : null}
+                  </DrawerClose>
                 </div>
               </div>
             )}
