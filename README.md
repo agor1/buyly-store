@@ -9,6 +9,15 @@ Buyly Store is a TypeScript e-commerce project split into two applications:
 
 The frontend talks to the backend through `/api` endpoints and stores authentication state client-side while the backend uses cookies for authenticated flows.
 
+## Features
+
+- Guest storefront with product browsing, search, contact form, login, and registration pages.
+- Customer cart and checkout flow with separate delivery address fields for city, postal code, street, and house number.
+- Customer profile page with username editing and password change confirmation. After a successful password change, the user is logged out and redirected to `/login`.
+- Customer order history with status, shipping, payment, and ordered product details.
+- Admin panel routes for products and orders.
+- Shared motion helpers for page and section reveal animations, with reduced-motion support.
+
 ## Project Structure
 
 ```text
@@ -101,6 +110,7 @@ Default local URLs:
 Main backend routes:
 
 - `POST /api/contact` - sends a contact form message by email.
+- `POST /api/orders` - creates an authenticated order.
 - `/api/auth` - authentication routes.
 - `/api/categories` - category routes.
 - `/api/products` - product routes.
@@ -114,6 +124,17 @@ curl -X POST http://localhost:5000/api/contact \
   -H "Content-Type: application/json" \
   -d "{\"name\":\"Jan Kowalski\",\"email\":\"jan@example.com\",\"message\":\"Chcialbym zapytac o status zamowienia.\"}"
 ```
+
+Example order request:
+
+```bash
+curl -X POST http://localhost:5000/api/orders \
+  -H "Content-Type: application/json" \
+  -b "token-cookie-from-login" \
+  -d "{\"shippingAddress\":\"Marketplace 12, 00-001 Warszawa\",\"shippingType\":\"courier\",\"paymentType\":\"card\",\"items\":[{\"productId\":\"product-id\",\"quantity\":1}]}"
+```
+
+The frontend collects the delivery address in separate fields and combines them into `shippingAddress` before sending the order to the backend.
 
 ## Verification
 
