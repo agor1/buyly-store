@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+const passwordSchema = z
+  .string()
+  .min(6, "Hasło musi mieć co najmniej 6 znaków")
+  .regex(/[A-Z]/, "Hasło musi zawierać przynajmniej jedną wielką literę")
+  .regex(/[0-9]/, "Hasło musi zawierać przynajmniej jedną cyfrę")
+  .regex(/[@$!%*?&]/, "Hasło musi zawierać przynajmniej jeden znak specjalny");
+
 export const loginFormSchema = z.object({
   email: z.string().trim().min(1, "Email jest wymagany").email("Podaj poprawny email"),
   password: z.string().min(1, "Hasło jest wymagane"),
@@ -13,7 +20,7 @@ export const registerFormSchema = z
       .min(1, "Nazwa jest wymagana")
       .min(3, "Nazwa musi mieć minimum 3 znaki"),
     email: z.string().trim().min(1, "Email jest wymagany").email("Podaj poprawny email"),
-    password: z.string().min(6, "Hasło musi mieć co najmniej 6 znaków"),
+    password: passwordSchema,
     repeatPassword: z.string().min(1, "Powtórz hasło"),
   })
   .refine((data) => data.password === data.repeatPassword, {
@@ -32,7 +39,7 @@ export const profileFormSchema = z.object({
 export const passwordFormSchema = z
   .object({
     currentPassword: z.string().min(1, "Obecne hasło jest wymagane"),
-    newPassword: z.string().min(6, "Nowe hasło musi mieć co najmniej 6 znaków"),
+    newPassword: passwordSchema,
     repeatNewPassword: z.string().min(1, "Powtórz nowe hasło"),
   })
   .refine((data) => data.newPassword === data.repeatNewPassword, {

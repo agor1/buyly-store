@@ -1,9 +1,11 @@
 "use client";
 
 import { ArrowsClockwise, MagnifyingGlass, Trash } from "@phosphor-icons/react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import {
   Pagination,
@@ -36,23 +38,8 @@ import {
   type OrderStatus,
   type PaginationMeta,
 } from "@/lib/api/orders";
+import { orderStatusLabels, orderStatuses } from "@/lib/order-options";
 import { formatPrice } from "@/lib/product-utils";
-
-const orderStatuses: OrderStatus[] = [
-  "PENDING",
-  "CONFIRMED",
-  "SHIPPED",
-  "DELIVERED",
-  "CANCELLED",
-];
-
-const statusLabels: Record<OrderStatus, string> = {
-  PENDING: "Oczekuje",
-  CONFIRMED: "Potwierdzone",
-  SHIPPED: "Wysłane",
-  DELIVERED: "Dostarczone",
-  CANCELLED: "Anulowane",
-};
 
 const ordersPerPage = 10;
 
@@ -283,24 +270,44 @@ export default function AdminOrdersPage() {
                           <SelectContent className="border-border bg-surface text-text">
                             {orderStatuses.map((status) => (
                               <SelectItem key={status} value={status}>
-                                {statusLabels[status]}
+                                {orderStatusLabels[status]}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          aria-label="Usuń zamówienie"
-                          className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
-                          disabled={isPending}
-                          onClick={() => handleDeleteOrder(order.id)}
-                          size="icon"
-                          type="button"
-                          variant="outline"
-                        >
-                          <Trash />
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            asChild
+                            aria-label="Szczegóły zamówienia"
+                            className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                            size="sm"
+                            variant="outline"
+                          >
+                            <Link href={`/panel/orders/${order.id}`}>
+                              Szczegóły
+                            </Link>
+                          </Button>
+                          <ConfirmDialog
+                            confirmLabel="Usuń zamówienie"
+                            description="Ta operacja usunie zamówienie z panelu. Dla zrealizowanych zamówień backend zablokuje usunięcie."
+                            isPending={isPending}
+                            title="Usunąć zamówienie?"
+                            onConfirm={() => handleDeleteOrder(order.id)}
+                          >
+                            <Button
+                              aria-label="Usuń zamówienie"
+                              className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                              disabled={isPending}
+                              size="icon"
+                              type="button"
+                              variant="outline"
+                            >
+                              <Trash />
+                            </Button>
+                          </ConfirmDialog>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

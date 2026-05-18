@@ -20,6 +20,20 @@ const shippingPrices = {
   pickup: new Prisma.Decimal(0),
 } as const;
 
+const restockableStatuses: readonly string[] = [
+  OrderStatus.PENDING,
+  OrderStatus.CONFIRMED,
+];
+const fulfilledStatuses: readonly string[] = [
+  OrderStatus.SHIPPED,
+  OrderStatus.DELIVERED,
+];
+
+const canRestoreOrderStock = (status: string) =>
+  restockableStatuses.includes(status);
+
+const isFulfilledOrder = (status: string) => fulfilledStatuses.includes(status);
+
 const restoreOrderItemsStock = async (
   tx: Prisma.TransactionClient,
   orderItems: OrderItemStockData[],
@@ -92,6 +106,58 @@ export const getOrders = async ({ page, limit, search }: GetOrdersOptions) => {
       totalPages: Math.max(1, Math.ceil(total / limit)),
     },
   };
+};
+
+const orderDetailsInclude = {
+  user: {
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  },
+  order_items: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          price: true,
+          image_url: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.OrderInclude;
+
+export const getOrderDetails = async (orderId: string) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: orderDetailsInclude,
+  });
+
+  if (!order) {
+    throw new NotFoundError("Order not found");
+  }
+
+  return order;
+};
+
+export const getMyOrderDetails = async (userId: string, orderId: string) => {
+  const order = await prisma.order.findFirst({
+    where: {
+      id: orderId,
+      user_id: userId,
+    },
+    include: orderDetailsInclude,
+  });
+
+  if (!order) {
+    throw new NotFoundError("Order not found");
+  }
+
+  return order;
 };
 
 // CREATE new order
@@ -228,7 +294,13 @@ export const updateOrderStatus = async (
     }
 
     if (status === OrderStatus.CANCELLED && order.status !== OrderStatus.CANCELLED) {
-      await restoreOrderItemsStock(tx, order.order_items);
+      if (isFulfilledOrder(order.status)) {
+        throw new BadRequestError("Nie można anulować zrealizowanego zamówienia.");
+      }
+
+      if (canRestoreOrderStock(order.status)) {
+        await restoreOrderItemsStock(tx, order.order_items);
+      }
     }
 
     return tx.order.update({
@@ -257,7 +329,11 @@ export const deleteOrder = async (orderId: string) => {
       throw new NotFoundError("Order not found");
     }
 
-    if (order.status !== OrderStatus.CANCELLED) {
+    if (isFulfilledOrder(order.status)) {
+      throw new BadRequestError("Nie można usunąć zrealizowanego zamówienia.");
+    }
+
+    if (canRestoreOrderStock(order.status)) {
       await restoreOrderItemsStock(tx, order.order_items);
     }
 

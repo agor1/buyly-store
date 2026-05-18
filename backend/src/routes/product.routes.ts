@@ -23,16 +23,16 @@ router.get("/:slug", getSingleProduct);
 router.get("/", validateQuery(getProductsQuerySchema), getAllProducts);
 router.post(
   "/",
-  validateRequest(createProductSchema),
   authMiddleware,
   roleMiddleware(["ADMIN"]),
+  validateRequest(createProductSchema),
   createProduct,
 );
 router.put(
   "/:id",
-  validateRequest(createProductSchema),
   authMiddleware,
   roleMiddleware(["ADMIN"]),
+  validateRequest(createProductSchema),
   updateProductById,
 );
 router.delete(

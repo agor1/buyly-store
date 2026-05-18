@@ -14,35 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Separator } from "@/components/ui/separator";
 import { getMyOrders, type Order } from "@/lib/api/orders";
+import {
+  orderStatusClassNames,
+  orderStatusLabels,
+  paymentLabels,
+  shippingLabels,
+} from "@/lib/order-options";
 import { formatPrice } from "@/lib/product-utils";
-
-const statusLabels: Record<Order["status"], string> = {
-  PENDING: "Oczekuje",
-  CONFIRMED: "Potwierdzone",
-  SHIPPED: "Wysłane",
-  DELIVERED: "Dostarczone",
-  CANCELLED: "Anulowane",
-};
-
-const statusClassNames: Record<Order["status"], string> = {
-  PENDING: "border-amber bg-amber-bg text-amber",
-  CONFIRMED: "border-cyan bg-cyan-bg text-cyan",
-  SHIPPED: "border-blue-500 bg-blue-500/10 text-blue-400",
-  DELIVERED: "border-green bg-green-bg text-green",
-  CANCELLED: "border-red-500 bg-red-500/10 text-red-400",
-};
-
-const shippingLabels: Record<string, string> = {
-  courier: "Kurier",
-  parcel_locker: "Paczkomat",
-  pickup: "Odbiór osobisty",
-};
-
-const paymentLabels: Record<string, string> = {
-  card: "Karta",
-  blik: "BLIK",
-  cash_on_delivery: "Za pobraniem",
-};
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -147,9 +125,9 @@ export default function OrdersPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className={`border px-2 py-1 font-mono text-label font-bold uppercase tracking-[0.12em] ${statusClassNames[order.status]}`}
+                          className={`border px-2 py-1 font-mono text-label font-bold uppercase tracking-[0.12em] ${orderStatusClassNames[order.status]}`}
                         >
-                          {statusLabels[order.status]}
+                          {orderStatusLabels[order.status]}
                         </span>
                         <span className="font-mono text-xs text-muted-foreground">
                           {new Date(order.created_at).toLocaleDateString(
@@ -161,9 +139,19 @@ export default function OrdersPage() {
                         #{order.id}
                       </h2>
                     </div>
-                    <p className="font-mono text-price font-bold text-cyan">
-                      {formatPrice(String(order.total_price))}
-                    </p>
+                    <div className="flex flex-col gap-3 lg:items-end">
+                      <p className="font-mono text-price font-bold text-cyan">
+                        {formatPrice(String(order.total_price))}
+                      </p>
+                      <Button
+                        asChild
+                        className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Link href={`/orders/${order.id}`}>Szczegóły</Link>
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="mt-4 grid gap-3 text-sm md:grid-cols-3">

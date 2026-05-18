@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import Navbar from "@/components/layout/navbar";
 import { ThemeProvider } from "@/components/theme-provider";
 import AuthBootstrap from "@/components/auth/auth-bootstrap";
+import PageTitle from "@/components/layout/page-title";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -24,7 +25,10 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Buyly Store",
+  title: {
+    default: "Buyly Store",
+    template: "%s | Buyly Store",
+  },
   description: "Buyly Store frontend",
 };
 
@@ -54,6 +58,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex min-h-screen w-full flex-1 flex-col bg-base">
+            <PageTitle />
             <AuthBootstrap />
             <Navbar />
             {children}

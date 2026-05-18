@@ -31,6 +31,7 @@ export interface OrderItem {
     name: string;
     slug?: string;
     price: number | string;
+    image_url?: string | null;
   };
 }
 
@@ -46,6 +47,7 @@ export interface Order {
   user?: {
     id: string;
     email: string;
+    name?: string;
   };
 }
 
@@ -88,12 +90,24 @@ export const getMyOrders = async (): Promise<Order[]> => {
   return response.data;
 };
 
+export const getMyOrder = async (orderId: string): Promise<Order> => {
+  const response = await api.get<Order>(`/orders/my/${orderId}`);
+
+  return response.data;
+};
+
 export const getAllOrders = async (
   params: GetOrdersParams = {},
 ): Promise<PaginatedOrdersResponse> => {
   const response = await api.get<PaginatedOrdersResponse>("/orders", {
     params,
   });
+
+  return response.data;
+};
+
+export const getOrder = async (orderId: string): Promise<Order> => {
+  const response = await api.get<Order>(`/orders/${orderId}`);
 
   return response.data;
 };

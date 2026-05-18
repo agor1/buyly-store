@@ -11,6 +11,7 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -586,17 +587,24 @@ export default function AdminProductsPage() {
                           >
                             <PencilSimple />
                           </Button>
-                          <Button
-                            aria-label="Usuń produkt"
-                            className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
-                            disabled={isPending}
-                            onClick={() => handleDeleteProduct(product.id)}
-                            size="icon"
-                            type="button"
-                            variant="outline"
+                          <ConfirmDialog
+                            confirmLabel="Usuń produkt"
+                            description="Produkt zostanie ukryty w katalogu i nie będzie dostępny dla klientów."
+                            isPending={isPending}
+                            title="Usunąć produkt?"
+                            onConfirm={() => handleDeleteProduct(product.id)}
                           >
-                            <Trash />
-                          </Button>
+                            <Button
+                              aria-label="Usuń produkt"
+                              className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                              disabled={isPending}
+                              size="icon"
+                              type="button"
+                              variant="outline"
+                            >
+                              <Trash />
+                            </Button>
+                          </ConfirmDialog>
                         </div>
                       </TableCell>
                     </TableRow>

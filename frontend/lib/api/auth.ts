@@ -34,55 +34,34 @@ export interface UpdateCurrentUserPayload {
   newPassword?: string;
 }
 
-// Login function
 export const login = async (payload: LoginPayload): Promise<AuthSession> => {
-  try {
-    const response = await api.post<AuthResponse>("/auth/login", payload);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.post<AuthResponse>("/auth/login", payload);
+
+  return response.data;
 };
 
-// Register function
 export const register = async (
   payload: RegisterPayload,
 ): Promise<AuthSession> => {
-  try {
-    const response = await api.post<AuthResponse>("/auth/register", payload);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.post<AuthResponse>("/auth/register", payload);
+
+  return response.data;
 };
 
-// Logout function
 export const logout = async (): Promise<void> => {
-  try {
-    await api.post("/auth/logout");
-  } catch (error) {
-    throw error;
-  }
+  await api.post("/auth/logout");
 };
 
-// Get current user function
 export const getCurrentUser = async (): Promise<User | null> => {
-  try {
-    const response = await api.get<CurrentUserResponse>("/auth/me");
-    return response.data.user;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get<CurrentUserResponse>("/auth/me");
+
+  return response.data.user;
 };
 
-// Update current user function
 export const updateCurrentUser = async (
   payload: UpdateCurrentUserPayload,
 ): Promise<User> => {
-  try {
-    const response = await api.patch<CurrentUserResponse>("/auth/me", payload);
-    return response.data.user;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.patch<CurrentUserResponse>("/auth/me", payload);
+
+  return response.data.user;
 };

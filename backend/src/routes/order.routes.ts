@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   createNewOrder,
   getAllOrders,
+  getOrder,
+  getUserOrder,
   getUserOrders,
   removeOrder,
   updateOrder,
@@ -30,11 +32,23 @@ router.get(
   roleMiddleware(["CUSTOMER", "ADMIN"]),
   getUserOrders,
 );
+router.get(
+  "/my/:id",
+  authMiddleware,
+  roleMiddleware(["CUSTOMER", "ADMIN"]),
+  getUserOrder,
+);
+router.get(
+  "/:id",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  getOrder,
+);
 router.patch(
   "/:id",
   authMiddleware,
-  validateRequest(updateOrderStatusSchema),
   roleMiddleware(["ADMIN"]),
+  validateRequest(updateOrderStatusSchema),
   updateOrder,
 );
 router.delete(

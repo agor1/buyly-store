@@ -6,16 +6,8 @@ import {
   removeCartItem,
   updateCartItem,
 } from "../services/cart.service.js";
-import { UnauthorizedError } from "../errors/app-error.js";
 import { AuthRequest } from "../types/authRequest.js";
-
-const requireUserId = (req: AuthRequest) => {
-  if (!req.userId) {
-    throw new UnauthorizedError();
-  }
-
-  return req.userId;
-};
+import { requireUserId } from "../utils/auth.utils.js";
 
 export const getUserCart = async (req: AuthRequest, res: Response) => {
   const userId = requireUserId(req);

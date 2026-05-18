@@ -65,53 +65,36 @@ export interface CreateProductPayload {
 }
 
 export const getProducts = async (params: GetProductsParams = {}) => {
-  try {
-    const response = await api.get<PaginatedProductsResponse>("/products", {
-      params,
-    });
+  const response = await api.get<PaginatedProductsResponse>("/products", {
+    params,
+  });
 
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  return response.data;
 };
 
 export const getProduct = async (slug: string) => {
-  try {
-    const response = await api.get<Product>(`/products/${slug}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get<Product>(`/products/${slug}`);
+
+  return response.data;
 };
 
 export const createProduct = async (payload: CreateProductPayload) => {
-  try {
-    const response = await api.post<Product>("/products", payload);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.post<Product>("/products", payload);
+
+  return response.data;
 };
 
 export const updateProduct = async (
   id: string,
   payload: CreateProductPayload,
 ) => {
-  try {
-    const response = await api.put<Product>(`/products/${id}`, payload);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.put<Product>(`/products/${id}`, payload);
+
+  return response.data;
 };
 
 export const deleteProduct = async (id: string) => {
-  try {
-    await api.delete(`/products/${id}`);
-  } catch (error) {
-    throw error;
-  }
+  await api.delete(`/products/${id}`);
 };
 
 const productsApi = {

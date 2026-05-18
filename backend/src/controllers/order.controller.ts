@@ -2,20 +2,15 @@ import { Request, Response } from "express";
 import {
   createOrder,
   deleteOrder,
+  getMyOrderDetails,
   getMyOrders,
+  getOrderDetails,
   getOrders,
   updateOrderStatus,
 } from "../services/orders.service.js";
-import { BadRequestError, UnauthorizedError } from "../errors/app-error.js";
+import { BadRequestError } from "../errors/app-error.js";
 import { AuthRequest } from "../types/authRequest.js";
-
-const requireUserId = (req: AuthRequest) => {
-  if (!req.userId) {
-    throw new UnauthorizedError();
-  }
-
-  return req.userId;
-};
+import { requireUserId } from "../utils/auth.utils.js";
 
 export const getAllOrders = async (req: Request, res: Response) => {
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -28,6 +23,18 @@ export const getAllOrders = async (req: Request, res: Response) => {
   });
 
   res.status(200).json(orders);
+};
+
+export const getOrder = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id) {
+    throw new BadRequestError("Order ID is required");
+  }
+
+  const order = await getOrderDetails(id);
+
+  res.status(200).json(order);
 };
 
 export const createNewOrder = async (req: AuthRequest, res: Response) => {
@@ -73,4 +80,17 @@ export const getUserOrders = async (req: AuthRequest, res: Response) => {
   const orders = await getMyOrders(userId);
 
   res.status(200).json(orders);
+};
+
+export const getUserOrder = async (req: AuthRequest, res: Response) => {
+  const userId = requireUserId(req);
+  const { id } = req.params;
+
+  if (!id) {
+    throw new BadRequestError("Order ID is required");
+  }
+
+  const order = await getMyOrderDetails(userId, id);
+
+  res.status(200).json(order);
 };

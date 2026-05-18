@@ -6,8 +6,9 @@ import {
   registerUser,
   updateCurrentUser,
 } from "../services/auth.service.js";
-import { BadRequestError, UnauthorizedError } from "../errors/app-error.js";
+import { BadRequestError } from "../errors/app-error.js";
 import { AuthRequest } from "../types/authRequest.js";
+import { requireUserId } from "../utils/auth.utils.js";
 
 const setAuthCookie = (res: Response, token: string) => {
   res.cookie("token", token, {
@@ -16,14 +17,6 @@ const setAuthCookie = (res: Response, token: string) => {
     sameSite: "strict",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
-};
-
-const requireUserId = (req: AuthRequest) => {
-  if (!req.userId) {
-    throw new UnauthorizedError();
-  }
-
-  return req.userId;
 };
 
 export const register = async (req: Request, res: Response) => {
