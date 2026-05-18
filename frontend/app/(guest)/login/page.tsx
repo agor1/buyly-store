@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { getFirstZodError, loginFormSchema } from "@/lib/schemas/forms";
+import { Reveal } from "@/components/motion/reveal";
 
 export default function LoginPage() {
   const { login, loading, error } = useAuth();
@@ -41,7 +42,7 @@ export default function LoginPage() {
   return (
     <main className="scanlines flex-1 bg-base text-text">
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-6 py-10 md:grid-cols-[0.9fr_1.1fr] lg:px-10">
-        <div className="order-2 hidden border-hairline border-border bg-surface p-4 shadow-cyan md:block">
+        <Reveal className="order-2 hidden border-hairline border-border bg-surface p-4 shadow-cyan md:block" delay={0.08}>
           <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
             <span className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
               {"// secure access"}
@@ -84,9 +85,9 @@ export default function LoginPage() {
               </p>
             </div>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="order-1 w-full">
+        <Reveal className="order-1 w-full">
           <div className="mb-8 max-w-xl">
             <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
               {"// logowanie"}
@@ -162,7 +163,7 @@ export default function LoginPage() {
               </Link>
             </div>
           </form>
-        </div>
+        </Reveal>
       </section>
     </main>
   );

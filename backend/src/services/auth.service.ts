@@ -2,7 +2,11 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma.js";
 import bcrypt from "bcryptjs";
 import { env } from "../config/env.js";
-import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors/app-error.js";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../errors/app-error.js";
 
 interface RegisterData {
   email: string;
@@ -118,7 +122,7 @@ export const updateCurrentUser = async (
     );
 
     if (!valid) {
-      throw new BadRequestError("Current password is invalid");
+      throw new BadRequestError("Obecne hasło jest nieprawidłowe");
     }
 
     updateData.password_hash = await bcrypt.hash(data.newPassword, 10);

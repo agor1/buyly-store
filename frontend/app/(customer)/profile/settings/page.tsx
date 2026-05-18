@@ -5,6 +5,7 @@ import { Desktop, Moon, Sun } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import { useAuthStore } from "@/lib/store/auth-store";
@@ -59,7 +60,7 @@ export default function ProfileSettingsPage() {
         </aside>
 
         <div className="grid gap-6">
-          <header className="border-hairline border-border bg-surface p-5 shadow-cyan">
+          <Reveal className="border-hairline border-border bg-surface p-5 shadow-cyan">
             <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
               {"// ustawienia"}
             </p>
@@ -73,9 +74,10 @@ export default function ProfileSettingsPage() {
                 </p>
               </div>
             </div>
-          </header>
+          </Reveal>
 
-          <section className="border-hairline border-border bg-surface p-5 shadow-cyan">
+          <Stagger className="grid gap-6">
+          <StaggerItem className="border-hairline border-border bg-surface p-5 shadow-cyan">
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div>
                 <div className="flex items-center gap-2 text-text-bright">
@@ -112,9 +114,9 @@ export default function ProfileSettingsPage() {
                 </span>
               </button>
             </div>
-          </section>
+          </StaggerItem>
 
-          <section className="border-hairline border-border bg-surface p-5 shadow-cyan">
+          <StaggerItem className="border-hairline border-border bg-surface p-5 shadow-cyan">
             <div className="mb-5 flex items-center gap-2 text-text-bright">
               <Desktop className="text-cyan" size={22} />
               <h2 className="font-display text-xl font-bold">Tryb motywu</h2>
@@ -149,7 +151,8 @@ export default function ProfileSettingsPage() {
                 System
               </Toggle>
             </div>
-          </section>
+          </StaggerItem>
+          </Stagger>
         </div>
       </section>
     </main>

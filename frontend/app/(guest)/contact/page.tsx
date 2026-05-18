@@ -14,6 +14,7 @@ import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { sendContactMessage } from "@/lib/api/contact";
 import { getFirstZodError } from "@/lib/schemas/forms";
 import { z } from "zod";
@@ -119,7 +120,7 @@ export default function ContactPage() {
   return (
     <main className="scanlines flex-1 overflow-x-hidden bg-base text-text">
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-4 py-10 sm:px-6 md:py-12 lg:grid-cols-[0.9fr_1.1fr] lg:px-10">
-        <div className="max-w-2xl">
+        <Reveal className="max-w-2xl">
           <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
             {"// centrum kontaktu"}
           </p>
@@ -132,12 +133,12 @@ export default function ContactPage() {
             kanał kontaktu.
           </p>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+          <Stagger className="mt-8 grid gap-3 sm:grid-cols-3">
             {contactChannels.map((channel) => {
               const Icon = channel.icon;
 
               return (
-                <article
+                <StaggerItem
                   className="border-hairline border-border bg-surface p-4 transition-colors hover:border-cyan"
                   key={channel.title}
                 >
@@ -151,13 +152,13 @@ export default function ContactPage() {
                   <p className="mt-3 text-caption text-muted-foreground">
                     {channel.text}
                   </p>
-                </article>
+                </StaggerItem>
               );
             })}
-          </div>
-        </div>
+          </Stagger>
+        </Reveal>
 
-        <section className="border-hairline border-border bg-surface p-4 shadow-cyan sm:p-6">
+        <Reveal className="border-hairline border-border bg-surface p-4 shadow-cyan sm:p-6" delay={0.08}>
           <div className="mb-6 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
             <span className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
               {"// formularz"}
@@ -262,16 +263,16 @@ export default function ContactPage() {
               </Button>
             </div>
           </form>
-        </section>
+        </Reveal>
       </section>
 
       <section className="border-y border-border bg-surface">
-        <div className="mx-auto grid max-w-7xl gap-px px-4 py-8 sm:px-6 md:grid-cols-3 lg:px-10">
+        <Stagger className="mx-auto grid max-w-7xl gap-px px-4 py-8 sm:px-6 md:grid-cols-3 lg:px-10">
           {supportDetails.map((detail) => {
             const Icon = detail.icon;
 
             return (
-              <article
+              <StaggerItem
                 className="border-hairline border-border bg-base p-5"
                 key={detail.title}
               >
@@ -282,14 +283,14 @@ export default function ContactPage() {
                 <p className="mt-2 text-body text-muted-foreground">
                   {detail.text}
                 </p>
-              </article>
+              </StaggerItem>
             );
           })}
-        </div>
+        </Stagger>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-16 lg:px-10">
-        <div className="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
+        <Reveal className="grid gap-4 md:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
               {"// informacje"}
@@ -298,18 +299,18 @@ export default function ContactPage() {
               Przygotuj dane, dzięki którym szybciej rozwiążemy sprawę.
             </h2>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <Stagger className="grid gap-3 sm:grid-cols-2">
             {helpfulInfo.map((item) => (
-              <div
+              <StaggerItem
                 className="border-hairline border-border bg-surface p-4 font-mono text-label uppercase tracking-[0.12em] text-cyan"
                 key={item}
               >
                 {"// "}
                 {item}
-              </div>
+              </StaggerItem>
             ))}
-          </div>
-        </div>
+          </Stagger>
+        </Reveal>
       </section>
 
       <Footer />

@@ -1,7 +1,7 @@
 import { ArrowRight } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   paymentOptions,
   type PaymentType,
@@ -15,13 +15,19 @@ interface CheckoutSummaryProps {
   isSubmitting: boolean;
   orderTotal: number;
   paymentType: PaymentType;
-  shippingAddress: string;
+  shippingCity: string;
+  shippingHouseNumber: string;
+  shippingPostalCode: string;
   shippingPrice: number;
+  shippingStreet: string;
   shippingType: ShippingType;
   totalItems: number;
   onCreateOrder: () => void;
   onPaymentTypeChange: (paymentType: PaymentType) => void;
-  onShippingAddressChange: (shippingAddress: string) => void;
+  onShippingCityChange: (shippingCity: string) => void;
+  onShippingHouseNumberChange: (shippingHouseNumber: string) => void;
+  onShippingPostalCodeChange: (shippingPostalCode: string) => void;
+  onShippingStreetChange: (shippingStreet: string) => void;
   onShippingTypeChange: (shippingType: ShippingType) => void;
 }
 
@@ -30,13 +36,19 @@ export default function CheckoutSummary({
   isSubmitting,
   orderTotal,
   paymentType,
-  shippingAddress,
+  shippingCity,
+  shippingHouseNumber,
+  shippingPostalCode,
   shippingPrice,
+  shippingStreet,
   shippingType,
   totalItems,
   onCreateOrder,
   onPaymentTypeChange,
-  onShippingAddressChange,
+  onShippingCityChange,
+  onShippingHouseNumberChange,
+  onShippingPostalCodeChange,
+  onShippingStreetChange,
   onShippingTypeChange,
 }: CheckoutSummaryProps) {
   const selectedPayment = paymentOptions.find(
@@ -74,20 +86,43 @@ export default function CheckoutSummary({
       />
 
       <div className="mt-5">
-        <label
-          className="font-mono text-label uppercase tracking-[0.14em] text-cyan"
-          htmlFor="shipping-address"
-        >
+        <p className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
           Adres dostawy
-        </label>
-        <Textarea
-          className="mt-2 min-h-24 border-border bg-surface text-text-bright placeholder:text-muted-foreground"
-          disabled={disabled}
-          id="shipping-address"
-          onChange={(event) => onShippingAddressChange(event.target.value)}
-          placeholder="Ulica, numer, kod pocztowy, miasto"
-          value={shippingAddress}
-        />
+        </p>
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          <AddressInput
+            disabled={disabled}
+            id="shipping-city"
+            label="Miasto"
+            onChange={onShippingCityChange}
+            placeholder="Warszawa"
+            value={shippingCity}
+          />
+          <AddressInput
+            disabled={disabled}
+            id="shipping-postal-code"
+            label="Kod pocztowy"
+            onChange={onShippingPostalCodeChange}
+            placeholder="00-001"
+            value={shippingPostalCode}
+          />
+          <AddressInput
+            disabled={disabled}
+            id="shipping-street"
+            label="Ulica"
+            onChange={onShippingStreetChange}
+            placeholder="Marketplace"
+            value={shippingStreet}
+          />
+          <AddressInput
+            disabled={disabled}
+            id="shipping-house-number"
+            label="Nr domu"
+            onChange={onShippingHouseNumberChange}
+            placeholder="12"
+            value={shippingHouseNumber}
+          />
+        </div>
       </div>
       <Button
         className="mt-6 w-full bg-cyan text-black hover:bg-cyan-dim"
@@ -99,6 +134,36 @@ export default function CheckoutSummary({
         <ArrowRight />
       </Button>
     </aside>
+  );
+}
+
+function AddressInput({
+  disabled,
+  id,
+  label,
+  placeholder,
+  value,
+  onChange,
+}: {
+  disabled: boolean;
+  id: string;
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="grid gap-1.5 text-xs text-muted-foreground" htmlFor={id}>
+      {label}
+      <Input
+        className="h-10 border-border bg-surface text-text-bright placeholder:text-muted-foreground"
+        disabled={disabled}
+        id={id}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        value={value}
+      />
+    </label>
   );
 }
 

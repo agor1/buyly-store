@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   EnvelopeSimple,
@@ -13,11 +14,20 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { updateCurrentUser } from "@/lib/api/auth";
+import { logout, updateCurrentUser } from "@/lib/api/auth";
 import {
   getFirstZodError,
   passwordFormSchema,
@@ -26,16 +36,22 @@ import {
 import { useAuthStore } from "@/lib/store/auth-store";
 
 export default function ProfilePage() {
-  const { setSession, user } = useAuthStore();
+  const router = useRouter();
+  const { clearSession, setSession, user } = useAuthStore();
   const [name, setName] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [repeatNewPassword, setRepeatNewPassword] = useState("");
   const [profileError, setProfileError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [isPasswordSaving, setIsPasswordSaving] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [pendingPasswordData, setPendingPasswordData] = useState<{
+    currentPassword: string;
+    newPassword: string;
+  } | null>(null);
   const initials = user?.name?.[0] || user?.email?.[0] || "U";
   const profileName = name ?? user?.name ?? "";
 
@@ -90,11 +106,11 @@ export default function ProfilePage() {
   const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setPasswordError(null);
-    setPasswordSuccess(null);
 
     const result = passwordFormSchema.safeParse({
       currentPassword,
       newPassword,
+      repeatNewPassword,
     });
 
     if (!result.success) {
@@ -102,26 +118,87 @@ export default function ProfilePage() {
       return;
     }
 
+    setPendingPasswordData({
+      currentPassword: result.data.currentPassword,
+      newPassword: result.data.newPassword,
+    });
+    setIsPasswordDialogOpen(true);
+  };
+
+  const handlePasswordConfirm = async () => {
+    if (!pendingPasswordData) {
+      return;
+    }
+
     setIsPasswordSaving(true);
 
     try {
-      const updatedUser = await updateCurrentUser({
-        currentPassword: result.data.currentPassword,
-        newPassword: result.data.newPassword,
+      await updateCurrentUser({
+        currentPassword: pendingPasswordData.currentPassword,
+        newPassword: pendingPasswordData.newPassword,
       });
-      saveUser(updatedUser);
+
+      try {
+        await logout();
+      } finally {
+        clearSession();
+        router.replace("/login");
+      }
+
       setCurrentPassword("");
       setNewPassword("");
-      setPasswordSuccess("Hasło zostało zmienione");
+      setRepeatNewPassword("");
+      setPendingPasswordData(null);
+      setIsPasswordDialogOpen(false);
     } catch (error) {
       setPasswordError(getErrorMessage(error, "Nie udało się zmienić hasła"));
+      setIsPasswordDialogOpen(false);
     } finally {
       setIsPasswordSaving(false);
     }
   };
 
   return (
-    <main className="scanlines flex-1 bg-base text-text">
+    <>
+      <Dialog
+        open={isPasswordDialogOpen}
+        onOpenChange={(open) => {
+          if (!isPasswordSaving) {
+            setIsPasswordDialogOpen(open);
+          }
+        }}
+      >
+        <DialogContent className="border border-border bg-surface text-text-bright shadow-cyan">
+          <DialogHeader>
+            <DialogTitle>Potwierdź zmianę hasła</DialogTitle>
+            <DialogDescription>
+              Po zmianie hasła zostaniesz wylogowany i przekierowany na stronę
+              logowania.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+              disabled={isPasswordSaving}
+              onClick={() => setIsPasswordDialogOpen(false)}
+            >
+              Anuluj
+            </Button>
+            <Button
+              type="button"
+              className="bg-cyan text-black"
+              disabled={isPasswordSaving}
+              onClick={handlePasswordConfirm}
+            >
+              {isPasswordSaving ? "Zmienianie..." : "Zmień hasło"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <main className="scanlines flex-1 bg-base text-text">
       <section className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[280px_1fr] lg:px-10">
         <aside className="border-hairline border-border bg-surface p-4 shadow-cyan">
           <div className="flex items-center gap-3">
@@ -164,7 +241,7 @@ export default function ProfilePage() {
         </aside>
 
         <div className="grid gap-6">
-          <header className="border-hairline border-border bg-surface p-5 shadow-cyan">
+          <Reveal className="border-hairline border-border bg-surface p-5 shadow-cyan">
             <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
               {"// profil"}
             </p>
@@ -197,17 +274,18 @@ export default function ProfilePage() {
                 </Button>
               </div>
             </div>
-          </header>
+          </Reveal>
 
-          <section className="grid gap-6 xl:grid-cols-[1fr_360px]">
-            <form
-              id="profile-form"
+          <Stagger className="grid gap-6 xl:grid-cols-[1fr_360px]">
+            <StaggerItem
               className="border-hairline border-border bg-surface p-5 shadow-cyan"
-              onSubmit={handleProfileSubmit}
             >
+            <form id="profile-form" onSubmit={handleProfileSubmit}>
               <div className="mb-5 flex items-center gap-2 text-text-bright">
                 <IdentificationCard className="text-cyan" size={22} />
-                <h2 className="font-display text-xl font-bold">Informacje</h2>
+                <h2 className="font-display text-xl font-bold">
+                  Informacje
+                </h2>
               </div>
 
               <div className="grid gap-5 md:grid-cols-2">
@@ -241,7 +319,9 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="profile-address">Adres dostawy</Label>
+                  <Label htmlFor="profile-address">
+                    Adres dostawy
+                  </Label>
                   <Textarea
                     id="profile-address"
                     placeholder="Ulica, kod pocztowy, miasto"
@@ -260,21 +340,28 @@ export default function ProfilePage() {
                 </div>
               )}
             </form>
+            </StaggerItem>
 
-            <div className="grid gap-6">
+            <StaggerItem className="grid gap-6">
               <section className="border-hairline border-border bg-surface p-5 shadow-cyan">
                 <div className="mb-5 flex items-center gap-2 text-text-bright">
                   <ShieldCheck className="text-cyan" size={22} />
-                  <h2 className="font-display text-xl font-bold">Status</h2>
+                  <h2 className="font-display text-xl font-bold">
+                    Status
+                  </h2>
                 </div>
                 <div className="grid gap-3 text-sm">
                   <div className="flex items-center justify-between border border-border bg-base px-3 py-2">
-                    <span className="text-muted-foreground">Sesja</span>
+                    <span className="text-muted-foreground">
+                      Sesja
+                    </span>
                     <span className="text-green">Aktywna</span>
                   </div>
                   <div className="flex items-center justify-between border border-border bg-base px-3 py-2">
                     <span className="text-muted-foreground">Konto</span>
-                    <span className="text-cyan">Zweryfikowane</span>
+                    <span className="text-cyan">
+                      Zweryfikowane
+                    </span>
                   </div>
                 </div>
               </section>
@@ -282,11 +369,15 @@ export default function ProfilePage() {
               <section className="border-hairline border-border bg-surface p-5 shadow-cyan">
                 <div className="mb-5 flex items-center gap-2 text-text-bright">
                   <Key className="text-cyan" size={22} />
-                  <h2 className="font-display text-xl font-bold">Hasło</h2>
+                  <h2 className="font-display text-xl font-bold">
+                    Hasło
+                  </h2>
                 </div>
                 <form className="grid gap-4" onSubmit={handlePasswordSubmit}>
                   <div className="space-y-2">
-                    <Label htmlFor="current-password">Obecne hasło</Label>
+                    <Label htmlFor="current-password">
+                      Obecne hasło
+                    </Label>
                     <Input
                       id="current-password"
                       type="password"
@@ -297,7 +388,9 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="new-password">Nowe hasło</Label>
+                    <Label htmlFor="new-password">
+                      Nowe hasło
+                    </Label>
                     <Input
                       id="new-password"
                       type="password"
@@ -307,14 +400,22 @@ export default function ProfilePage() {
                       disabled={isPasswordSaving}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="repeat-new-password">
+                      Potwierdź nowe hasło
+                    </Label>
+                    <Input
+                      id="repeat-new-password"
+                      type="password"
+                      className="border-border bg-base text-text-bright"
+                      value={repeatNewPassword}
+                      onChange={(e) => setRepeatNewPassword(e.target.value)}
+                      disabled={isPasswordSaving}
+                    />
+                  </div>
                   {passwordError && (
                     <div className="rounded border border-red-500 bg-red-500/10 p-3 text-sm text-red-500">
                       {passwordError}
-                    </div>
-                  )}
-                  {passwordSuccess && (
-                    <div className="rounded border border-green bg-green-bg p-3 text-sm text-green">
-                      {passwordSuccess}
                     </div>
                   )}
                   <Button
@@ -326,37 +427,44 @@ export default function ProfilePage() {
                   </Button>
                 </form>
               </section>
-            </div>
-          </section>
+            </StaggerItem>
+          </Stagger>
 
-          <section className="grid gap-4 border-hairline border-border bg-surface p-5 shadow-cyan md:grid-cols-3">
-            <div className="flex items-center gap-3 border border-border bg-base p-4">
+          <Stagger className="grid gap-4 border-hairline border-border bg-surface p-5 shadow-cyan md:grid-cols-3">
+            <StaggerItem className="flex items-center gap-3 border border-border bg-base p-4">
               <User className="text-cyan" size={22} />
               <div>
                 <p className="text-sm text-text-bright">Profil</p>
-                <p className="text-xs text-muted-foreground">Dane konta</p>
+                <p className="text-xs text-muted-foreground">
+                  Dane konta
+                </p>
               </div>
-            </div>
-            <div className="flex items-center gap-3 border border-border bg-base p-4">
+            </StaggerItem>
+            <StaggerItem className="flex items-center gap-3 border border-border bg-base p-4">
               <EnvelopeSimple className="text-cyan" size={22} />
               <div>
                 <p className="text-sm text-text-bright">Kontakt</p>
-                <p className="text-xs text-muted-foreground">Email i telefon</p>
+                <p className="text-xs text-muted-foreground">Email</p>
               </div>
-            </div>
-            <Link
-              href="/profile/settings"
-              className="flex items-center gap-3 border border-border bg-base p-4 transition-colors hover:border-cyan hover:text-cyan"
-            >
-              <ShieldCheck className="text-cyan" size={22} />
-              <div>
-                <p className="text-sm text-text-bright">Ustawienia</p>
-                <p className="text-xs text-muted-foreground">Motyw strony</p>
-              </div>
-            </Link>
-          </section>
+            </StaggerItem>
+            <StaggerItem>
+              <Link
+                href="/profile/settings"
+                className="flex items-center gap-3 border border-border bg-base p-4 transition-colors hover:border-cyan hover:text-cyan"
+              >
+                <ShieldCheck className="text-cyan" size={22} />
+                <div>
+                  <p className="text-sm text-text-bright">Ustawienia</p>
+                  <p className="text-xs text-muted-foreground">
+                    Motyw strony
+                  </p>
+                </div>
+              </Link>
+            </StaggerItem>
+          </Stagger>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   );
 }

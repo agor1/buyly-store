@@ -11,6 +11,7 @@ import {
 } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Separator } from "@/components/ui/separator";
 import { getMyOrders, type Order } from "@/lib/api/orders";
 import { formatPrice } from "@/lib/product-utils";
@@ -92,7 +93,7 @@ export default function OrdersPage() {
   return (
     <main className="scanlines flex-1 bg-base text-text">
       <section className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-10">
-        <header className="border-hairline border-border bg-surface p-6 shadow-cyan">
+        <Reveal className="border-hairline border-border bg-surface p-6 shadow-cyan">
           <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
             {"// moje zamówienia"}
           </p>
@@ -116,9 +117,9 @@ export default function OrdersPage() {
               </Link>
             </Button>
           </div>
-        </header>
+        </Reveal>
 
-        <section className="mt-6 border-hairline border-border bg-surface p-5 shadow-cyan">
+        <Reveal className="mt-6 border-hairline border-border bg-surface p-5 shadow-cyan" delay={0.08}>
           {isLoading ? (
             <div className="border border-border bg-base p-5 font-mono text-caption uppercase tracking-[0.14em] text-cyan">
               Ładowanie zamówień...
@@ -136,9 +137,9 @@ export default function OrdersPage() {
           ) : null}
 
           {!isLoading && !error && sortedOrders.length > 0 ? (
-            <div className="grid gap-4">
+            <Stagger className="grid gap-4">
               {sortedOrders.map((order) => (
-                <article
+                <StaggerItem
                   className="border border-border bg-base p-4"
                   key={order.id}
                 >
@@ -210,11 +211,11 @@ export default function OrdersPage() {
                       </div>
                     ))}
                   </div>
-                </article>
+                </StaggerItem>
               ))}
-            </div>
+            </Stagger>
           ) : null}
-        </section>
+        </Reveal>
       </section>
     </main>
   );

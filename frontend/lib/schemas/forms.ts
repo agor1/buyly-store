@@ -29,17 +29,30 @@ export const profileFormSchema = z.object({
     .min(3, "Nazwa musi mieć minimum 3 znaki"),
 });
 
-export const passwordFormSchema = z.object({
-  currentPassword: z.string().min(1, "Obecne hasło jest wymagane"),
-  newPassword: z.string().min(6, "Nowe hasło musi mieć co najmniej 6 znaków"),
-});
+export const passwordFormSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Obecne hasło jest wymagane"),
+    newPassword: z.string().min(6, "Nowe hasło musi mieć co najmniej 6 znaków"),
+    repeatNewPassword: z.string().min(1, "Powtórz nowe hasło"),
+  })
+  .refine((data) => data.newPassword === data.repeatNewPassword, {
+    message: "Hasła nie są identyczne",
+    path: ["repeatNewPassword"],
+  });
 
 export const checkoutFormSchema = z.object({
-  shippingAddress: z
+  shippingCity: z
     .string()
     .trim()
-    .min(1, "Podaj adres dostawy")
-    .min(10, "Adres dostawy musi mieć minimum 10 znaków"),
+    .min(1, "Podaj miasto")
+    .min(2, "Miasto musi mieć minimum 2 znaki"),
+  shippingPostalCode: z
+    .string()
+    .trim()
+    .min(1, "Podaj kod pocztowy")
+    .regex(/^\d{2}-\d{3}$/, "Kod pocztowy powinien mieć format 00-000"),
+  shippingStreet: z.string().trim().min(1, "Podaj ulicę"),
+  shippingHouseNumber: z.string().trim().min(1, "Podaj numer domu"),
   shippingType: z.enum(["courier", "parcel_locker", "pickup"]),
   paymentType: z.enum(["card", "blik", "cash_on_delivery"]),
 });

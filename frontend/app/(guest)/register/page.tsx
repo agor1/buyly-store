@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useState } from "react";
 import { getFirstZodError, registerFormSchema } from "@/lib/schemas/forms";
+import { Reveal } from "@/components/motion/reveal";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function RegisterPage() {
   return (
     <main className="scanlines flex-1 bg-base text-text">
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-6 py-10 md:grid-cols-[1.05fr_0.95fr] lg:px-10">
-        <div className="w-full">
+        <Reveal className="w-full">
           <div className="mb-8 max-w-xl">
             <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
               {"// rejestracja"}
@@ -159,9 +160,9 @@ export default function RegisterPage() {
               </Link>
             </div>
           </form>
-        </div>
+        </Reveal>
 
-        <div className="hidden border-hairline border-border bg-surface p-4 shadow-cyan md:block">
+        <Reveal className="hidden border-hairline border-border bg-surface p-4 shadow-cyan md:block" delay={0.08}>
           <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
             <span className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
               {"// start account"}
@@ -195,7 +196,7 @@ export default function RegisterPage() {
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </section>
     </main>
   );

@@ -8,6 +8,7 @@ import { Trash } from "@phosphor-icons/react";
 import CartLineItem from "@/components/cart/cart-line-item";
 import CheckoutSummary from "@/components/cart/checkout-summary";
 import EmptyCart from "@/components/cart/empty-cart";
+import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { createOrder } from "@/lib/api/orders";
@@ -29,7 +30,10 @@ export default function CartPage() {
     removeItem,
     updateQuantity,
   } = useCartStore();
-  const [shippingAddress, setShippingAddress] = useState("");
+  const [shippingCity, setShippingCity] = useState("");
+  const [shippingPostalCode, setShippingPostalCode] = useState("");
+  const [shippingStreet, setShippingStreet] = useState("");
+  const [shippingHouseNumber, setShippingHouseNumber] = useState("");
   const [shippingType, setShippingType] = useState<ShippingType>(
     shippingOptions[0].value,
   );
@@ -63,7 +67,10 @@ export default function CartPage() {
     }
 
     const result = checkoutFormSchema.safeParse({
-      shippingAddress,
+      shippingCity,
+      shippingPostalCode,
+      shippingStreet,
+      shippingHouseNumber,
       shippingType,
       paymentType,
     });
@@ -87,16 +94,23 @@ export default function CartPage() {
 
     try {
       setIsSubmitting(true);
+      const shippingAddress = [
+        `${result.data.shippingStreet} ${result.data.shippingHouseNumber}`,
+        `${result.data.shippingPostalCode} ${result.data.shippingCity}`,
+      ].join(", ");
 
       const order = await createOrder({
-        shippingAddress: result.data.shippingAddress,
+        shippingAddress,
         shippingType: result.data.shippingType,
         paymentType: result.data.paymentType,
         items: orderItems,
       });
 
       await clearCart();
-      setShippingAddress("");
+      setShippingCity("");
+      setShippingPostalCode("");
+      setShippingStreet("");
+      setShippingHouseNumber("");
 
       const params = new URLSearchParams({
         orderId: order.id,
@@ -122,15 +136,15 @@ export default function CartPage() {
   return (
     <main className="scanlines flex-1 bg-base text-text">
       <section className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-10">
-        <div className="border-hairline border-border bg-surface p-6 shadow-cyan sm:p-8">
+        <Reveal className="border-hairline border-border bg-surface p-6 shadow-cyan sm:p-8">
           <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
             {"// koszyk"}
           </p>
           {orderError ? <CartAlert>{orderError}</CartAlert> : null}
           {cartError ? <CartAlert>{cartError}</CartAlert> : null}
 
-          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_280px] lg:items-start">
-            <section className="border border-border bg-base p-6">
+          <Stagger className="mt-6 grid gap-6 lg:grid-cols-[1fr_280px] lg:items-start">
+            <StaggerItem className="border border-border bg-base p-6">
               {items.length === 0 ? (
                 <EmptyCart />
               ) : (
@@ -149,24 +163,32 @@ export default function CartPage() {
                   ))}
                 </div>
               )}
-            </section>
+            </StaggerItem>
 
-            <CheckoutSummary
-              disabled={isCheckoutDisabled}
-              isSubmitting={isSubmitting}
-              orderTotal={orderTotal}
-              paymentType={paymentType}
-              shippingAddress={shippingAddress}
-              shippingPrice={shippingPrice}
-              shippingType={shippingType}
-              totalItems={totalItems}
-              onCreateOrder={handleCreateOrder}
-              onPaymentTypeChange={setPaymentType}
-              onShippingAddressChange={setShippingAddress}
-              onShippingTypeChange={setShippingType}
-            />
-          </div>
-        </div>
+            <StaggerItem>
+              <CheckoutSummary
+                disabled={isCheckoutDisabled}
+                isSubmitting={isSubmitting}
+                orderTotal={orderTotal}
+                paymentType={paymentType}
+                shippingCity={shippingCity}
+                shippingHouseNumber={shippingHouseNumber}
+                shippingPostalCode={shippingPostalCode}
+                shippingPrice={shippingPrice}
+                shippingStreet={shippingStreet}
+                shippingType={shippingType}
+                totalItems={totalItems}
+                onCreateOrder={handleCreateOrder}
+                onPaymentTypeChange={setPaymentType}
+                onShippingCityChange={setShippingCity}
+                onShippingHouseNumberChange={setShippingHouseNumber}
+                onShippingPostalCodeChange={setShippingPostalCode}
+                onShippingStreetChange={setShippingStreet}
+                onShippingTypeChange={setShippingType}
+              />
+            </StaggerItem>
+          </Stagger>
+        </Reveal>
       </section>
     </main>
   );
