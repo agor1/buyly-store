@@ -3,6 +3,7 @@
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Trash } from "@phosphor-icons/react";
 
 import CartLineItem from "@/components/cart/cart-line-item";
@@ -25,7 +26,6 @@ export default function CartPage() {
   const router = useRouter();
   const {
     clearCart,
-    error: cartError,
     items,
     removeItem,
     updateQuantity,
@@ -41,7 +41,6 @@ export default function CartPage() {
     paymentOptions[0].value,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderError, setOrderError] = useState<string | null>(null);
 
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
   const productsTotal = items.reduce(
@@ -59,10 +58,8 @@ export default function CartPage() {
   const isCheckoutDisabled = items.length === 0 || isSubmitting;
 
   const handleCreateOrder = async () => {
-    setOrderError(null);
-
     if (items.length === 0) {
-      setOrderError("Koszyk jest pusty.");
+      toast.error("Koszyk jest pusty.");
       return;
     }
 
@@ -76,7 +73,7 @@ export default function CartPage() {
     });
 
     if (!result.success) {
-      setOrderError(getFirstZodError(result.error));
+      toast.error(getFirstZodError(result.error));
       return;
     }
 
@@ -86,7 +83,7 @@ export default function CartPage() {
     }));
 
     if (orderItems.some((item) => !item.productId)) {
-      setOrderError(
+      toast.error(
         "W koszyku jest produkt bez ID. Usuń go z koszyka i dodaj ponownie.",
       );
       return;
@@ -120,6 +117,7 @@ export default function CartPage() {
         payment: selectedPayment?.label ?? result.data.paymentType,
       });
 
+      toast.success("Zamówienie zostało złożone.");
       router.push(`/checkout/success?${params.toString()}`);
     } catch (error) {
       const message =
@@ -127,7 +125,7 @@ export default function CartPage() {
           ? error.response.data.error
           : "Nie udało się złożyć zamówienia.";
 
-      setOrderError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -140,8 +138,6 @@ export default function CartPage() {
           <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
             {"// koszyk"}
           </p>
-          {orderError ? <CartAlert>{orderError}</CartAlert> : null}
-          {cartError ? <CartAlert>{cartError}</CartAlert> : null}
 
           <Stagger className="mt-6 grid gap-6 lg:grid-cols-[1fr_280px] lg:items-start">
             <StaggerItem className="border border-border bg-base p-6">
@@ -191,14 +187,6 @@ export default function CartPage() {
         </Reveal>
       </section>
     </main>
-  );
-}
-
-function CartAlert({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mt-5 border border-amber bg-amber-bg p-4 text-sm text-amber">
-      {children}
-    </div>
   );
 }
 

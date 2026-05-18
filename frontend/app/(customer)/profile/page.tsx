@@ -4,6 +4,7 @@ import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   EnvelopeSimple,
   IdentificationCard,
@@ -42,9 +43,6 @@ export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [repeatNewPassword, setRepeatNewPassword] = useState("");
-  const [profileError, setProfileError] = useState<string | null>(null);
-  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [isPasswordSaving, setIsPasswordSaving] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
@@ -77,13 +75,11 @@ export default function ProfilePage() {
 
   const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setProfileError(null);
-    setProfileSuccess(null);
 
     const result = profileFormSchema.safeParse({ name: profileName });
 
     if (!result.success) {
-      setProfileError(getFirstZodError(result.error));
+      toast.error(getFirstZodError(result.error));
       return;
     }
 
@@ -93,9 +89,9 @@ export default function ProfilePage() {
       const updatedUser = await updateCurrentUser({ name: result.data.name });
       saveUser(updatedUser);
       setName(updatedUser.name || "");
-      setProfileSuccess("Nazwa użytkownika została zapisana");
+      toast.success("Nazwa użytkownika została zapisana.");
     } catch (error) {
-      setProfileError(
+      toast.error(
         getErrorMessage(error, "Nie udało się zapisać nazwy użytkownika"),
       );
     } finally {
@@ -105,7 +101,6 @@ export default function ProfilePage() {
 
   const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setPasswordError(null);
 
     const result = passwordFormSchema.safeParse({
       currentPassword,
@@ -114,7 +109,7 @@ export default function ProfilePage() {
     });
 
     if (!result.success) {
-      setPasswordError(getFirstZodError(result.error));
+      toast.error(getFirstZodError(result.error));
       return;
     }
 
@@ -150,8 +145,9 @@ export default function ProfilePage() {
       setRepeatNewPassword("");
       setPendingPasswordData(null);
       setIsPasswordDialogOpen(false);
+      toast.success("Hasło zostało zmienione. Zaloguj się ponownie.");
     } catch (error) {
-      setPasswordError(getErrorMessage(error, "Nie udało się zmienić hasła"));
+      toast.error(getErrorMessage(error, "Nie udało się zmienić hasła"));
       setIsPasswordDialogOpen(false);
     } finally {
       setIsPasswordSaving(false);
@@ -329,16 +325,6 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
-              {profileError && (
-                <div className="mt-5 rounded border border-red-500 bg-red-500/10 p-3 text-sm text-red-500">
-                  {profileError}
-                </div>
-              )}
-              {profileSuccess && (
-                <div className="mt-5 rounded border border-green bg-green-bg p-3 text-sm text-green">
-                  {profileSuccess}
-                </div>
-              )}
             </form>
             </StaggerItem>
 
@@ -413,11 +399,6 @@ export default function ProfilePage() {
                       disabled={isPasswordSaving}
                     />
                   </div>
-                  {passwordError && (
-                    <div className="rounded border border-red-500 bg-red-500/10 p-3 text-sm text-red-500">
-                      {passwordError}
-                    </div>
-                  )}
                   <Button
                     type="submit"
                     className="bg-cyan text-black"

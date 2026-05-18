@@ -7,35 +7,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { getFirstZodError, loginFormSchema } from "@/lib/schemas/forms";
 import { Reveal } from "@/components/motion/reveal";
 
 export default function LoginPage() {
-  const { login, loading, error } = useAuth();
+  const { login, loading } = useAuth();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormError(null);
 
     const result = loginFormSchema.safeParse({ email, password });
 
     if (!result.success) {
-      setFormError(getFirstZodError(result.error));
+      toast.error(getFirstZodError(result.error));
       return;
     }
 
     try {
       await login(result.data);
+      toast.success("Zalogowano pomyślnie.");
       router.push("/");
     } catch {
-      setFormError(error || "Logowanie nie powiodło się");
+      toast.error("Logowanie nie powiodło się");
     }
   };
 
@@ -139,11 +139,6 @@ export default function LoginPage() {
                   disabled={loading}
                 />
               </div>
-              {formError && (
-                <div className="rounded border border-red-500 bg-red-500/10 p-3 text-sm text-red-500">
-                  {formError}
-                </div>
-              )}
             </div>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

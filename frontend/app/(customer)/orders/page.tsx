@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type ComponentType } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   ArrowRight,
   Package,
@@ -42,7 +43,10 @@ export default function OrdersPage() {
         }
       } catch {
         if (isMounted) {
-          setError("Nie udało się pobrać zamówień.");
+          const message = "Nie udało się pobrać zamówień.";
+
+          setError(message);
+          toast.error(message);
         }
       } finally {
         if (isMounted) {
@@ -105,7 +109,7 @@ export default function OrdersPage() {
           ) : null}
 
           {error ? (
-            <div className="border border-amber bg-amber-bg p-5 text-sm text-amber">
+            <div className="border border-border bg-base p-5 text-sm text-muted-foreground">
               {error}
             </div>
           ) : null}

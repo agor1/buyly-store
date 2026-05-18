@@ -9,6 +9,7 @@ import {
 } from "@phosphor-icons/react";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
@@ -77,10 +78,8 @@ export default function AdminProductsPage() {
       limit: productsPerPage,
       total: 0,
       totalPages: 1,
-    });
+  });
   const [isProductsLoading, setIsProductsLoading] = useState(true);
-  const [productError, setProductError] = useState<string | null>(null);
-  const [productSuccess, setProductSuccess] = useState<string | null>(null);
   const [pendingProductId, setPendingProductId] = useState<string | null>(null);
   const [isProductSubmitting, setIsProductSubmitting] = useState(false);
   const [isSlugEdited, setIsSlugEdited] = useState(false);
@@ -101,7 +100,7 @@ export default function AdminProductsPage() {
         }
       } catch {
         if (isMounted) {
-          setProductError("Nie udało się pobrać kategorii produktów.");
+          toast.error("Nie udało się pobrać kategorii produktów.");
         }
       }
     };
@@ -119,7 +118,6 @@ export default function AdminProductsPage() {
     const loadProducts = async () => {
       try {
         setIsProductsLoading(true);
-        setProductError(null);
 
         const response = await getProducts({
           page: productPage,
@@ -134,7 +132,7 @@ export default function AdminProductsPage() {
         }
       } catch {
         if (isMounted) {
-          setProductError("Nie udało się pobrać produktów.");
+          toast.error("Nie udało się pobrać produktów.");
         }
       } finally {
         if (isMounted) {
@@ -189,8 +187,6 @@ export default function AdminProductsPage() {
   const handleEditProduct = (product: Product) => {
     setEditingProductId(product.id);
     setIsSlugEdited(true);
-    setProductError(null);
-    setProductSuccess(null);
     setProductForm({
       name: product.name,
       slug: product.slug,
@@ -206,14 +202,12 @@ export default function AdminProductsPage() {
     event.preventDefault();
 
     setIsProductSubmitting(true);
-    setProductError(null);
-    setProductSuccess(null);
 
     try {
       const result = productFormSchema.safeParse(productForm);
 
       if (!result.success) {
-        setProductError(getFirstZodError(result.error));
+        toast.error(getFirstZodError(result.error));
         return;
       }
 
@@ -225,15 +219,15 @@ export default function AdminProductsPage() {
 
       resetProductForm();
       refreshProducts();
-      setProductSuccess(
-        editingProductId
-          ? "Produkt został zaktualizowany."
-          : "Produkt został dodany.",
-      );
+      const message = editingProductId
+        ? "Produkt został zaktualizowany."
+        : "Produkt został dodany.";
+
+      toast.success(message);
     } catch {
-      setProductError(
-        "Nie udało się zapisać produktu. Sprawdź dane formularza.",
-      );
+      const message = "Nie udało się zapisać produktu. Sprawdź dane formularza.";
+
+      toast.error(message);
     } finally {
       setIsProductSubmitting(false);
     }
@@ -244,8 +238,6 @@ export default function AdminProductsPage() {
     const previousPaginationMeta = productPaginationMeta;
 
     setPendingProductId(productId);
-    setProductError(null);
-    setProductSuccess(null);
     setProducts((currentProducts) =>
       currentProducts.filter((product) => product.id !== productId),
     );
@@ -260,6 +252,7 @@ export default function AdminProductsPage() {
 
     try {
       await deleteProduct(productId);
+      toast.success("Produkt został usunięty.");
 
       if (editingProductId === productId) {
         resetProductForm();
@@ -267,7 +260,9 @@ export default function AdminProductsPage() {
     } catch {
       setProducts(previousProducts);
       setProductPaginationMeta(previousPaginationMeta);
-      setProductError("Nie udało się usunąć produktu.");
+      const message = "Nie udało się usunąć produktu.";
+
+      toast.error(message);
     } finally {
       setPendingProductId(null);
     }
@@ -288,18 +283,6 @@ export default function AdminProductsPage() {
             zdjęcia.
           </p>
         </div>
-
-        {productError ? (
-          <div className="mb-4 border border-amber bg-amber-bg p-3 text-sm text-amber">
-            {productError}
-          </div>
-        ) : null}
-
-        {productSuccess ? (
-          <div className="mb-4 border border-green bg-green-bg p-3 text-sm text-green">
-            {productSuccess}
-          </div>
-        ) : null}
 
         <form className="grid gap-4 lg:grid-cols-2" onSubmit={handleCreateProduct}>
           <div className="space-y-2">

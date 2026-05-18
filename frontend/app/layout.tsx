@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/navbar";
 import { ThemeProvider } from "@/components/theme-provider";
 import AuthBootstrap from "@/components/auth/auth-bootstrap";
 import PageTitle from "@/components/layout/page-title";
+import { Toaster } from "@/components/ui/sonner";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -62,6 +63,7 @@ export default function RootLayout({
             <AuthBootstrap />
             <Navbar />
             {children}
+            <Toaster richColors position="bottom-right" />
           </div>
         </ThemeProvider>
       </body>

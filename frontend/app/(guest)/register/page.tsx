@@ -9,22 +9,21 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/hooks/useAuth";
 import { useState } from "react";
+import { toast } from "sonner";
 import { getFirstZodError, registerFormSchema } from "@/lib/schemas/forms";
 import { Reveal } from "@/components/motion/reveal";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register, loading, error } = useAuth();
+  const { register, loading } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
-  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setFormError(null);
 
     const result = registerFormSchema.safeParse({
       name,
@@ -34,7 +33,7 @@ export default function RegisterPage() {
     });
 
     if (!result.success) {
-      setFormError(getFirstZodError(result.error));
+      toast.error(getFirstZodError(result.error));
       return;
     }
 
@@ -45,9 +44,10 @@ export default function RegisterPage() {
         name: result.data.name,
       });
 
+      toast.success("Konto zostało utworzone.");
       router.push("/");
     } catch {
-      setFormError(error || "Rejestracja nie powiodła się");
+      toast.error("Rejestracja nie powiodła się");
     }
   };
 
@@ -137,12 +137,6 @@ export default function RegisterPage() {
                 />
               </div>
             </div>
-            {formError && (
-              <div className="mt-5 rounded border border-red-500 bg-red-500/10 p-3 text-sm text-red-500">
-                {formError}
-              </div>
-            )}
-
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 className="h-11 bg-cyan px-4 text-black hover:bg-cyan-dim"

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 
 import OrderDetailsView from "@/components/orders/order-details-view";
 import { getOrder, type Order } from "@/lib/api/orders";
@@ -28,7 +29,10 @@ export default function AdminOrderDetailsPage() {
         }
       } catch {
         if (isMounted) {
-          setError("Nie udało się pobrać szczegółów zamówienia.");
+          const message = "Nie udało się pobrać szczegółów zamówienia.";
+
+          setError(message);
+          toast.error(message);
         }
       } finally {
         if (isMounted) {
@@ -54,7 +58,7 @@ export default function AdminOrderDetailsPage() {
 
   if (error || !order) {
     return (
-      <div className="border border-amber bg-amber-bg p-5 text-sm text-amber">
+      <div className="border border-border bg-surface p-5 text-sm text-muted-foreground shadow-cyan">
         {error ?? "Nie znaleziono zamówienia."}
       </div>
     );

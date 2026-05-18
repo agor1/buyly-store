@@ -9,6 +9,7 @@ import {
   Question,
 } from "@phosphor-icons/react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import Footer from "@/components/layout/footer";
 import { Button } from "@/components/ui/button";
@@ -78,13 +79,9 @@ export default function ContactPage() {
   const [topic, setTopic] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setFormError(null);
-    setFormSuccess(null);
 
     const result = contactFormSchema.safeParse({
       name,
@@ -94,7 +91,7 @@ export default function ContactPage() {
     });
 
     if (!result.success) {
-      setFormError(getFirstZodError(result.error));
+      toast.error(getFirstZodError(result.error));
       return;
     }
 
@@ -109,9 +106,11 @@ export default function ContactPage() {
       setEmail("");
       setTopic("");
       setMessage("");
-      setFormSuccess("Wiadomość została wysłana. Odpowiemy najszybciej jak to możliwe.");
+      toast.success(
+        "Wiadomość została wysłana. Odpowiemy najszybciej jak to możliwe.",
+      );
     } catch {
-      setFormError("Nie udało się wysłać wiadomości. Spróbuj ponownie później.");
+      toast.error("Nie udało się wysłać wiadomości. Spróbuj ponownie później.");
     } finally {
       setIsSubmitting(false);
     }
@@ -169,18 +168,6 @@ export default function ContactPage() {
           </div>
 
           <form className="grid gap-5" onSubmit={handleSubmit}>
-            {formError ? (
-              <div className="border border-amber bg-amber-bg p-3 text-sm text-amber">
-                {formError}
-              </div>
-            ) : null}
-
-            {formSuccess ? (
-              <div className="border border-green bg-green-bg p-3 text-sm text-green">
-                {formSuccess}
-              </div>
-            ) : null}
-
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <label

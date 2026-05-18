@@ -3,6 +3,7 @@
 import { ArrowsClockwise, MagnifyingGlass, Trash } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
@@ -55,7 +56,6 @@ export default function AdminOrdersPage() {
     totalPages: 1,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,7 +64,6 @@ export default function AdminOrdersPage() {
     const loadOrders = async () => {
       try {
         setIsLoading(true);
-        setError(null);
 
         const response = await getAllOrders({
           page: currentPage,
@@ -78,7 +77,7 @@ export default function AdminOrdersPage() {
         }
       } catch {
         if (isMounted) {
-          setError("Nie udało się pobrać zamówień.");
+          toast.error("Nie udało się pobrać zamówień.");
         }
       } finally {
         if (isMounted) {
@@ -102,7 +101,6 @@ export default function AdminOrdersPage() {
     const previousOrders = orders;
 
     setPendingOrderId(orderId);
-    setError(null);
     setOrders((currentOrders) =>
       currentOrders.map((order) =>
         order.id === orderId ? { ...order, status } : order,
@@ -111,9 +109,12 @@ export default function AdminOrdersPage() {
 
     try {
       await updateOrderStatus(orderId, status);
+      toast.success("Status zamówienia został zaktualizowany.");
     } catch {
       setOrders(previousOrders);
-      setError("Nie udało się zaktualizować statusu zamówienia.");
+      const message = "Nie udało się zaktualizować statusu zamówienia.";
+
+      toast.error(message);
     } finally {
       setPendingOrderId(null);
     }
@@ -124,7 +125,6 @@ export default function AdminOrdersPage() {
     const previousPaginationMeta = paginationMeta;
 
     setPendingOrderId(orderId);
-    setError(null);
     setOrders((currentOrders) =>
       currentOrders.filter((order) => order.id !== orderId),
     );
@@ -139,10 +139,13 @@ export default function AdminOrdersPage() {
 
     try {
       await deleteOrder(orderId);
+      toast.success("Zamówienie zostało usunięte.");
     } catch {
       setOrders(previousOrders);
       setPaginationMeta(previousPaginationMeta);
-      setError("Nie udało się usunąć zamówienia.");
+      const message = "Nie udało się usunąć zamówienia.";
+
+      toast.error(message);
     } finally {
       setPendingOrderId(null);
     }
@@ -189,12 +192,6 @@ export default function AdminOrdersPage() {
             </Button>
           </div>
         </div>
-
-        {error ? (
-          <div className="mb-4 border border-amber bg-amber-bg p-3 text-sm text-amber">
-            {error}
-          </div>
-        ) : null}
 
         <Table>
           <TableHeader>

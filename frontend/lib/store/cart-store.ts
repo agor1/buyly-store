@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { toast } from "sonner";
 import * as cartApi from "@/lib/api/cart";
 
 export type CartItem = {
@@ -65,7 +66,10 @@ export const useCartStore = create<CartStore>()(
 
       addItem: async (item, quantity = 1) => {
         if (!get().ownerUserId) {
-          set({ error: "Zaloguj się, aby dodać produkt do koszyka." });
+          const message = "Zaloguj się, aby dodać produkt do koszyka.";
+
+          set({ error: message });
+          toast.error(message);
           return;
         }
 
@@ -76,10 +80,14 @@ export const useCartStore = create<CartStore>()(
             quantity,
           });
           set({ items: mapCartItems(cart) });
+          toast.success("Produkt dodany do koszyka.");
         } catch {
+          const message = "Nie udało się dodać produktu do koszyka.";
+
           set({
-            error: "Nie udało się dodać produktu do koszyka.",
+            error: message,
           });
+          toast.error(message);
         }
       },
 
@@ -93,10 +101,14 @@ export const useCartStore = create<CartStore>()(
           set({ error: null });
           const cart = await cartApi.removeCartItem(productId);
           set({ items: mapCartItems(cart) });
+          toast.success("Produkt usunięty z koszyka.");
         } catch {
+          const message = "Nie udało się usunąć produktu z koszyka.";
+
           set({
-            error: "Nie udało się usunąć produktu z koszyka.",
+            error: message,
           });
+          toast.error(message);
         }
       },
 
@@ -114,10 +126,14 @@ export const useCartStore = create<CartStore>()(
               : await cartApi.updateCartItem(productId, { quantity });
 
           set({ items: mapCartItems(cart) });
+          toast.success("Koszyk zaktualizowany.");
         } catch {
+          const message = "Nie udało się zaktualizować koszyka.";
+
           set({
-            error: "Nie udało się zaktualizować koszyka.",
+            error: message,
           });
+          toast.error(message);
         }
       },
 
@@ -131,10 +147,14 @@ export const useCartStore = create<CartStore>()(
           set({ error: null });
           const cart = await cartApi.clearCart();
           set({ items: mapCartItems(cart) });
+          toast.success("Koszyk wyczyszczony.");
         } catch {
+          const message = "Nie udało się wyczyścić koszyka.";
+
           set({
-            error: "Nie udało się wyczyścić koszyka.",
+            error: message,
           });
+          toast.error(message);
         }
       },
 

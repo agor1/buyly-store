@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 
 import OrderDetailsView from "@/components/orders/order-details-view";
 import { Reveal } from "@/components/motion/reveal";
@@ -29,7 +30,10 @@ export default function CustomerOrderDetailsPage() {
         }
       } catch {
         if (isMounted) {
-          setError("Nie udało się pobrać szczegółów zamówienia.");
+          const message = "Nie udało się pobrać szczegółów zamówienia.";
+
+          setError(message);
+          toast.error(message);
         }
       } finally {
         if (isMounted) {
@@ -56,7 +60,7 @@ export default function CustomerOrderDetailsPage() {
           ) : null}
 
           {error ? (
-            <div className="border border-amber bg-amber-bg p-5 text-sm text-amber">
+            <div className="border border-border bg-surface p-5 text-sm text-muted-foreground shadow-cyan">
               {error}
             </div>
           ) : null}
