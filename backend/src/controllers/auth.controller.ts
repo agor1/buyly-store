@@ -32,8 +32,7 @@ export const register = async (req: Request, res: Response) => {
 
   setAuthCookie(res, token);
   res.json({
-    user: { id: user.id, email: user.email },
-    token,
+    user: { id: user.id, email: user.email, name: user.name, role: user.role },
   });
 };
 
@@ -43,8 +42,7 @@ export const login = async (req: Request, res: Response) => {
 
   setAuthCookie(res, token);
   res.json({
-    user: { id: user.id, email: user.email },
-    token,
+    user: { id: user.id, email: user.email, name: user.name, role: user.role },
   });
 };
 

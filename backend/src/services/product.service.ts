@@ -1,7 +1,8 @@
 import { prisma } from "../lib/prisma.js";
+import { Prisma } from "../generated/prisma/client.js";
 import { ensureCategoryExists } from "./category.service.js";
 import { ProductData } from "../types/product.types.js";
-import { NotFoundError } from "../errors/app-error.js";
+import { ConflictError, NotFoundError } from "../errors/app-error.js";
 import { PRODUCT_SORT, type ProductSort } from "../constants/product-sort.js";
 
 interface GetProductsOptions {
@@ -13,6 +14,19 @@ interface GetProductsOptions {
   maxPrice?: number;
   sort?: ProductSort;
 }
+
+const handleProductWriteError = (error: unknown): never => {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002" &&
+    Array.isArray(error.meta?.target) &&
+    error.meta.target.includes("slug")
+  ) {
+    throw new ConflictError("Produkt z takim slugiem już istnieje.");
+  }
+
+  throw error;
+};
 
 export const getProduct = async (slug: string) => {
   const product = await prisma.product.findUnique({
@@ -103,20 +117,24 @@ export const addProduct = async (data: ProductData) => {
   const { name, slug, description, imageUrl, price, stock, categoryId } = data;
   const category = await ensureCategoryExists(categoryId);
 
-  return prisma.product.create({
-    data: {
-      name,
-      slug,
-      description: description || "",
-      image_url: imageUrl || null,
-      price: price || 0,
-      stock: stock || 0,
-      category_id: category.id,
-    },
-    include: {
-      category: true,
-    },
-  });
+  try {
+    return await prisma.product.create({
+      data: {
+        name,
+        slug,
+        description: description || "",
+        image_url: imageUrl || null,
+        price: price || 0,
+        stock: stock || 0,
+        category_id: category.id,
+      },
+      include: {
+        category: true,
+      },
+    });
+  } catch (error) {
+    handleProductWriteError(error);
+  }
 };
 
 export const updateProduct = async (id: string, data: ProductData) => {
@@ -129,21 +147,25 @@ export const updateProduct = async (id: string, data: ProductData) => {
 
   const category = await ensureCategoryExists(categoryId);
 
-  return prisma.product.update({
-    where: { id },
-    data: {
-      name,
-      slug,
-      description: description || "",
-      image_url: imageUrl || null,
-      price: price || 0,
-      stock: stock || 0,
-      category_id: category.id,
-    },
-    include: {
-      category: true,
-    },
-  });
+  try {
+    return await prisma.product.update({
+      where: { id },
+      data: {
+        name,
+        slug,
+        description: description || "",
+        image_url: imageUrl || null,
+        price: price || 0,
+        stock: stock || 0,
+        category_id: category.id,
+      },
+      include: {
+        category: true,
+      },
+    });
+  } catch (error) {
+    handleProductWriteError(error);
+  }
 };
 
 export const deleteProduct = async (id: string) => {
@@ -153,5 +175,8 @@ export const deleteProduct = async (id: string) => {
     throw new NotFoundError("Product not found");
   }
 
-  await prisma.product.delete({ where: { id } });
+  await prisma.product.update({
+    where: { id },
+    data: { is_active: false },
+  });
 };

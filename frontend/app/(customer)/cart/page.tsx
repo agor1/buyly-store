@@ -106,7 +106,7 @@ export default function CartPage() {
 
       const params = new URLSearchParams({
         orderId: order.id,
-        total: String(orderTotal),
+        total: String(order.total_price),
         items: String(totalItems),
         shipping: selectedShipping?.label ?? result.data.shippingType,
         payment: selectedPayment?.label ?? result.data.paymentType,

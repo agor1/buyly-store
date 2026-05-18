@@ -14,6 +14,12 @@ type OrderItemStockData = {
   quantity: number;
 };
 
+const shippingPrices = {
+  courier: new Prisma.Decimal(14.99),
+  parcel_locker: new Prisma.Decimal(11.99),
+  pickup: new Prisma.Decimal(0),
+} as const;
+
 const restoreOrderItemsStock = async (
   tx: Prisma.TransactionClient,
   orderItems: OrderItemStockData[],
@@ -120,7 +126,7 @@ export const createOrder = async ({
       products.map((product) => [product.id, product]),
     );
 
-    const totalPrice = items.reduce((sum, item) => {
+    const productsTotalPrice = items.reduce((sum, item) => {
       const product = productsById.get(item.productId);
       if (!product) {
         throw new BadRequestError("Nie znaleziono produktu z koszyka.");
@@ -128,6 +134,7 @@ export const createOrder = async ({
 
       return sum.add(product.price.mul(item.quantity));
     }, new Prisma.Decimal(0));
+    const totalPrice = productsTotalPrice.add(shippingPrices[shippingType]);
 
     for (const item of items) {
       const updatedProduct = await tx.product.updateMany({

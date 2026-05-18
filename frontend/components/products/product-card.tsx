@@ -16,7 +16,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const category = product.category?.name ?? "Produkt";
-  const { hasHydrated, token, user } = useAuthStore();
+  const { hasHydrated, user } = useAuthStore();
   const addItem = useCartStore((state) => state.addItem);
   const cartQuantity = useCartStore(
     (state) =>
@@ -24,7 +24,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   );
   const availableStock = Math.max(0, product.stock - cartQuantity);
   const canUseCart =
-    hasHydrated && !!token && (user?.role === "CUSTOMER" || user?.role === "ADMIN");
+    hasHydrated && !!user && (user?.role === "CUSTOMER" || user?.role === "ADMIN");
   const canAddToCart = canUseCart && availableStock > 0;
   const addToCartLabel = !canUseCart
     ? "Tylko dla klienta"

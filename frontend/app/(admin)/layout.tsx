@@ -13,14 +13,14 @@ export default function CustomerLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { hasHydrated, token, user } = useAuthStore();
+  const { hasCheckedSession, hasHydrated, user } = useAuthStore();
 
   useEffect(() => {
-    if (!hasHydrated) {
+    if (!hasHydrated || !hasCheckedSession) {
       return;
     }
 
-    if (!token) {
+    if (!user) {
       router.replace("/login");
       return;
     }
@@ -28,9 +28,9 @@ export default function CustomerLayout({
     if (user?.role !== "ADMIN") {
       router.replace("/");
     }
-  }, [hasHydrated, router, token, user]);
+  }, [hasCheckedSession, hasHydrated, router, user]);
 
-  if (!hasHydrated || !token || user?.role !== "ADMIN") {
+  if (!hasHydrated || !hasCheckedSession || user?.role !== "ADMIN") {
     return null;
   }
 
@@ -52,7 +52,8 @@ export default function CustomerLayout({
                 Panel administracyjny
               </h1>
               <p className="mt-3 max-w-2xl text-body text-muted-foreground">
-                Zarządzaj katalogiem produktów i zamówieniami w osobnych sekcjach.
+                Zarządzaj katalogiem produktów i zamówieniami w osobnych
+                sekcjach.
               </p>
             </div>
             <nav className="flex flex-wrap gap-2">

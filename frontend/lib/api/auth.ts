@@ -9,7 +9,6 @@ export interface User {
 
 export interface AuthResponse {
   user: User;
-  token: string;
 }
 
 export interface CurrentUserResponse {
@@ -27,7 +26,6 @@ export interface RegisterPayload extends LoginPayload {
 
 export interface AuthSession {
   user: User;
-  token: string;
 }
 
 export interface UpdateCurrentUserPayload {

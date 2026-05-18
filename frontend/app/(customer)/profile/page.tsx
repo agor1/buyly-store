@@ -26,7 +26,7 @@ import {
 import { useAuthStore } from "@/lib/store/auth-store";
 
 export default function ProfilePage() {
-  const { setSession, token, user } = useAuthStore();
+  const { setSession, user } = useAuthStore();
   const [name, setName] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -56,7 +56,7 @@ export default function ProfilePage() {
   };
 
   const saveUser = (updatedUser: NonNullable<typeof user>) => {
-    setSession({ user: updatedUser, token });
+    setSession({ user: updatedUser });
   };
 
   const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

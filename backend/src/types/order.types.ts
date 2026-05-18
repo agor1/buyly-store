@@ -1,7 +1,9 @@
+export type ShippingType = "courier" | "parcel_locker" | "pickup";
+
 export interface OrderData {
   userId: string;
   shippingAddress: string;
-  shippingType: string;
+  shippingType: ShippingType;
   paymentType: string;
   items: OrderItemData[];
 }

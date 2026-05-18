@@ -9,7 +9,6 @@ import Footer from "@/components/layout/footer";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import api from "@/lib/api/api";
 
 interface HomeProduct {
   id: string;

@@ -7,7 +7,7 @@ import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
 
 export const useAuth = () => {
-  const { user, token, setSession, clearSession } = useAuthStore();
+  const { user, setSession, clearSession } = useAuthStore();
   const setCartOwner = useCartStore((state) => state.setCartOwner);
   const loadCart = useCartStore((state) => state.loadCart);
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export const useAuth = () => {
         const userData = await authService.getCurrentUser();
 
         if (userData) {
-          setSession({ user: userData, token: session.token });
+          setSession({ user: userData });
           setCartOwner(userData.id);
           await loadCart();
           return userData;
@@ -59,7 +59,7 @@ export const useAuth = () => {
         const userData = await authService.getCurrentUser();
 
         if (userData) {
-          setSession({ user: userData, token: session.token });
+          setSession({ user: userData });
           setCartOwner(userData.id);
           await loadCart();
           return userData;
@@ -110,7 +110,7 @@ export const useAuth = () => {
     try {
       const userData = await authService.getCurrentUser();
       if (userData) {
-        setSession({ user: userData, token: useAuthStore.getState().token });
+        setSession({ user: userData });
         setCartOwner(userData.id);
         await loadCart();
       }
@@ -132,6 +132,5 @@ export const useAuth = () => {
     logout,
     getMe,
     isAuthenticated: !!user,
-    token,
   };
 };

@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/layout/navbar";
 import { ThemeProvider } from "@/components/theme-provider";
+import AuthBootstrap from "@/components/auth/auth-bootstrap";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -53,6 +54,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex min-h-screen w-full flex-1 flex-col bg-base">
+            <AuthBootstrap />
             <Navbar />
             {children}
           </div>

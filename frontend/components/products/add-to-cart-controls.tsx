@@ -16,7 +16,7 @@ export default function AddToCartControls({
   product,
 }: AddToCartControlsProps) {
   const [quantity, setQuantity] = useState(1);
-  const { hasHydrated, token, user } = useAuthStore();
+  const { hasHydrated, user } = useAuthStore();
   const addItem = useCartStore((state) => state.addItem);
   const cartQuantity = useCartStore(
     (state) =>
@@ -27,7 +27,7 @@ export default function AddToCartControls({
   const selectedQuantity = Math.min(quantity, Math.max(1, availableStock));
   const canUseCart =
     hasHydrated &&
-    !!token &&
+    !!user &&
     (user?.role === "CUSTOMER" || user?.role === "ADMIN");
   const canAddToCart = canUseCart && availableStock > 0;
   const addToCartLabel = !canUseCart
