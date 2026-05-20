@@ -1,11 +1,19 @@
 import { Suspense } from "react";
 
-import ProductSearchView from "@/components/products/product-search-view";
+import ProductSearchPage from "@/components/products/product-search-page";
+import ProductsLoading from "../loading";
+import type { ProductSearchParams } from "@/lib/product-search-params";
 
-export default function ProductsSearchPage() {
+interface ProductsSearchPageProps {
+  searchParams?: Promise<ProductSearchParams>;
+}
+
+export default function ProductsSearchPage({
+  searchParams,
+}: ProductsSearchPageProps) {
   return (
-    <Suspense fallback={null}>
-      <ProductSearchView />
+    <Suspense fallback={<ProductsLoading />}>
+      <ProductSearchPage searchParams={searchParams} />
     </Suspense>
   );
 }

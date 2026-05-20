@@ -1,8 +1,7 @@
 "use client";
 
 import { Funnel, SlidersHorizontal } from "@phosphor-icons/react/dist/ssr";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Footer from "@/components/layout/footer";
 import CategoryFilter from "@/components/products/category-filter";
@@ -19,50 +18,79 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { getCategories, type Category } from "@/lib/api/categories";
+import type { Category } from "@/lib/api/categories";
 import {
   getProducts,
   type PaginationMeta,
-  PRODUCT_SORT,
-  PRODUCT_SORT_VALUES,
   type Product,
   type ProductSort,
+  type PaginatedProductsResponse,
 } from "@/lib/api/products";
 import { getFirstZodError, priceFilterSchema } from "@/lib/schemas/forms";
 
 const productsPerPage = 9;
 
-export default function ProductSearchView() {
-  const searchParams = useSearchParams();
-  const searchTerm = searchParams.get("q") ?? "";
-  const initialCategoryId = searchParams.get("categoryId") ?? "all";
-  const initialSort = getValidSort(searchParams.get("sort"));
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [minPriceInput, setMinPriceInput] = useState("");
-  const [maxPriceInput, setMaxPriceInput] = useState("");
+interface ProductSearchViewProps {
+  categoriesError: string | null;
+  initialCategories: Category[];
+  initialCategoryId: string;
+  initialMaxPrice?: number;
+  initialMinPrice?: number;
+  initialProductsError: string | null;
+  initialProductsResponse: PaginatedProductsResponse;
+  initialSearchTerm: string;
+  initialSort: ProductSort;
+}
+
+export default function ProductSearchView({
+  categoriesError,
+  initialCategories,
+  initialCategoryId,
+  initialMaxPrice,
+  initialMinPrice,
+  initialProductsError,
+  initialProductsResponse,
+  initialSearchTerm,
+  initialSort,
+}: ProductSearchViewProps) {
+  const hasSkippedInitialFetch = useRef(false);
+  const categories = initialCategories;
+  const searchTerm = initialSearchTerm;
+  const [products, setProducts] = useState<Product[]>(
+    initialProductsResponse.data,
+  );
+  const [minPriceInput, setMinPriceInput] = useState(
+    initialMinPrice === undefined ? "" : String(initialMinPrice),
+  );
+  const [maxPriceInput, setMaxPriceInput] = useState(
+    initialMaxPrice === undefined ? "" : String(initialMaxPrice),
+  );
   const [priceRange, setPriceRange] = useState<{
     minPrice?: number;
     maxPrice?: number;
-  }>({});
+  }>({ minPrice: initialMinPrice, maxPrice: initialMaxPrice });
   const [selectedCategoryId, setSelectedCategoryId] =
     useState(initialCategoryId);
   const [selectedSort, setSelectedSort] = useState<ProductSort>(initialSort);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(
+    initialProductsResponse.meta.page,
+  );
   const [paginationMeta, setPaginationMeta] = useState<PaginationMeta>({
-    page: 1,
-    limit: productsPerPage,
-    total: 0,
-    totalPages: 1,
+    ...initialProductsResponse.meta,
   });
-  const [isProductsLoading, setIsProductsLoading] = useState(true);
-  const [areCategoriesLoading, setAreCategoriesLoading] = useState(true);
-  const [productsError, setProductsError] = useState<string | null>(null);
-  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
+  const [productsError, setProductsError] = useState<string | null>(
+    initialProductsError,
+  );
   const [priceFilterError, setPriceFilterError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
+
+    if (!hasSkippedInitialFetch.current) {
+      hasSkippedInitialFetch.current = true;
+      return;
+    }
 
     const loadProducts = async () => {
       try {
@@ -101,35 +129,6 @@ export default function ProductSearchView() {
       isMounted = false;
     };
   }, [currentPage, priceRange, searchTerm, selectedCategoryId, selectedSort]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadCategories = async () => {
-      try {
-        const data = await getCategories();
-
-        if (isMounted) {
-          setCategories(data);
-          setCategoriesError(null);
-        }
-      } catch {
-        if (isMounted) {
-          setCategoriesError("Nie udało się pobrać kategorii.");
-        }
-      } finally {
-        if (isMounted) {
-          setAreCategoriesLoading(false);
-        }
-      }
-    };
-
-    loadCategories();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
@@ -193,7 +192,7 @@ export default function ProductSearchView() {
               <CategoryFilter
                 categories={categories}
                 error={categoriesError}
-                isLoading={areCategoriesLoading}
+                isLoading={false}
                 onSelectCategory={handleCategorySelect}
                 selectedCategoryId={selectedCategoryId}
               />
@@ -331,14 +330,4 @@ export default function ProductSearchView() {
       <Footer />
     </main>
   );
-}
-
-function getValidSort(sort: string | null): ProductSort {
-  const productSort = sort as ProductSort;
-
-  if (PRODUCT_SORT_VALUES.includes(productSort)) {
-    return productSort;
-  }
-
-  return PRODUCT_SORT.RELEVANCE;
 }
