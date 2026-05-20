@@ -21,8 +21,11 @@ import {
 } from "@/lib/checkout-options";
 import { checkoutFormSchema, getFirstZodError } from "@/lib/schemas/forms";
 import { useCartStore } from "@/lib/store/cart-store";
+import { usePromotionClock } from "@/lib/hooks/use-promotion-clock";
+import { getEffectiveProductPrice } from "@/lib/product-utils";
 
 export default function CartPage() {
+  usePromotionClock();
   const router = useRouter();
   const {
     clearCart,
@@ -44,7 +47,7 @@ export default function CartPage() {
 
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
   const productsTotal = items.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, item) => total + getEffectiveProductPrice(item) * item.quantity,
     0,
   );
   const selectedShipping = shippingOptions.find(

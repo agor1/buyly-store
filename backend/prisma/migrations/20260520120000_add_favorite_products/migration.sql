@@ -1,0 +1,1 @@
+-- No-op: FavoriteProduct is created by 20260520053058_favorites.

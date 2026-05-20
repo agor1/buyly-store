@@ -10,6 +10,7 @@ const pageTitles: Record<string, string> = {
   "/cart": "Koszyk",
   "/checkout/success": "Zamówienie złożone",
   "/contact": "Kontakt",
+  "/favorites": "Ulubione",
   "/login": "Logowanie",
   "/orders": "Moje zamówienia",
   "/panel": "Panel admina",

@@ -38,6 +38,7 @@ model User {
 
   orders    Order[]
   cart_items CartItem[]
+  favorites FavoriteProduct[]
 }
 
 model Category {
@@ -57,6 +58,9 @@ model Product {
   description String?
   image_url   String?
   price       Decimal  
+  promo_price Decimal?
+  promo_starts_at DateTime?
+  promo_ends_at   DateTime?
   stock       Int      @default(0)
   is_active   Boolean  @default(true)
   created_at  DateTime @default(now())
@@ -64,8 +68,11 @@ model Product {
   category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
   order_items OrderItem[]
   cart_items  CartItem[]
+  favorites   FavoriteProduct[]
 
   @@index([category_id])
+  @@index([promo_starts_at])
+  @@index([promo_ends_at])
 }
 
 model CartItem {
@@ -112,5 +119,19 @@ model OrderItem {
   product       Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
 
   @@index([order_id])
+  @@index([product_id])
+}
+
+model FavoriteProduct {
+  id         String   @id @default(cuid())
+  user_id    String
+  product_id String
+  created_at DateTime @default(now())
+
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, product_id])
+  @@index([user_id])
   @@index([product_id])
 }

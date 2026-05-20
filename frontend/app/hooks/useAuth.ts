@@ -5,11 +5,14 @@ import * as authService from "@/lib/api/auth";
 import axios from "axios";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useFavoritesStore } from "@/lib/store/favorites-store";
 
 export const useAuth = () => {
   const { user, setSession, clearSession } = useAuthStore();
   const setCartOwner = useCartStore((state) => state.setCartOwner);
   const loadCart = useCartStore((state) => state.loadCart);
+  const setFavoritesOwner = useFavoritesStore((state) => state.setFavoritesOwner);
+  const loadFavorites = useFavoritesStore((state) => state.loadFavorites);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,12 +29,16 @@ export const useAuth = () => {
         if (userData) {
           setSession({ user: userData });
           setCartOwner(userData.id);
+          setFavoritesOwner(userData.id);
           await loadCart();
+          await loadFavorites();
           return userData;
         }
 
         setCartOwner(session.user.id);
+        setFavoritesOwner(session.user.id);
         await loadCart();
+        await loadFavorites();
         return session.user;
       } catch (err) {
         const errorMessage =
@@ -44,7 +51,7 @@ export const useAuth = () => {
         setLoading(false);
       }
     },
-    [loadCart, setCartOwner, setSession],
+    [loadCart, loadFavorites, setCartOwner, setFavoritesOwner, setSession],
   );
 
   // Register
@@ -61,12 +68,16 @@ export const useAuth = () => {
         if (userData) {
           setSession({ user: userData });
           setCartOwner(userData.id);
+          setFavoritesOwner(userData.id);
           await loadCart();
+          await loadFavorites();
           return userData;
         }
 
         setCartOwner(session.user.id);
+        setFavoritesOwner(session.user.id);
         await loadCart();
+        await loadFavorites();
         return session.user;
       } catch (err) {
         const errorMessage =
@@ -79,7 +90,7 @@ export const useAuth = () => {
         setLoading(false);
       }
     },
-    [loadCart, setCartOwner, setSession],
+    [loadCart, loadFavorites, setCartOwner, setFavoritesOwner, setSession],
   );
 
   // Logout
@@ -98,9 +109,10 @@ export const useAuth = () => {
     } finally {
       clearSession();
       setCartOwner(null);
+      setFavoritesOwner(null);
       setLoading(false);
     }
-  }, [clearSession, setCartOwner]);
+  }, [clearSession, setCartOwner, setFavoritesOwner]);
 
   // Get me
   const getMe = useCallback(async () => {
@@ -112,7 +124,9 @@ export const useAuth = () => {
       if (userData) {
         setSession({ user: userData });
         setCartOwner(userData.id);
+        setFavoritesOwner(userData.id);
         await loadCart();
+        await loadFavorites();
       }
       return userData;
     } catch {
@@ -121,7 +135,7 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  }, [loadCart, setCartOwner, setSession]);
+  }, [loadCart, loadFavorites, setCartOwner, setFavoritesOwner, setSession]);
 
   return {
     user,

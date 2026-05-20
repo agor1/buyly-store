@@ -2,19 +2,28 @@
 
 import {
   ArrowsClockwise,
+  CalendarBlank,
   MagnifyingGlass,
   PencilSimple,
   Trash,
   X,
 } from "@phosphor-icons/react";
+import { format } from "date-fns";
+import { pl } from "date-fns/locale";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Pagination,
   PaginationContent,
@@ -46,10 +55,15 @@ import {
   getProducts,
   PRODUCT_SORT,
   updateProduct,
+  uploadProductImage,
   type PaginationMeta,
   type Product,
 } from "@/lib/api/products";
-import { formatPrice } from "@/lib/product-utils";
+import {
+  formatPrice,
+  getEffectiveProductPrice,
+  isPromotionActive,
+} from "@/lib/product-utils";
 import { getFirstZodError, productFormSchema } from "@/lib/schemas/forms";
 
 const productsPerPage = 9;
@@ -60,8 +74,46 @@ const initialProductForm = {
   description: "",
   imageUrl: "",
   price: "",
+  promoPrice: "",
+  promoStartsAt: "",
+  promoEndsAt: "",
   stock: "0",
   categoryId: "",
+};
+
+const toDateTimeInputValue = (value?: string | null) => {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toISOString().slice(0, 16);
+};
+
+const getDateTimeDate = (value: string) => {
+  if (!value) {
+    return undefined;
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
+
+const getDateTimeTime = (value: string) => value.split("T")[1] || "00:00";
+
+const toDateTimeLocalValue = (date: Date, time: string) => {
+  const [hours = "00", minutes = "00"] = time.split(":");
+  const nextDate = new Date(date);
+
+  nextDate.setHours(Number(hours), Number(minutes), 0, 0);
+
+  return `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, "0")}-${String(nextDate.getDate()).padStart(2, "0")}T${String(nextDate.getHours()).padStart(2, "0")}:${String(nextDate.getMinutes()).padStart(2, "0")}`;
 };
 
 export default function AdminProductsPage() {
@@ -83,6 +135,7 @@ export default function AdminProductsPage() {
   const [pendingProductId, setPendingProductId] = useState<string | null>(null);
   const [isProductSubmitting, setIsProductSubmitting] = useState(false);
   const [isSlugEdited, setIsSlugEdited] = useState(false);
+  const [productImageFile, setProductImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -182,17 +235,22 @@ export default function AdminProductsPage() {
     });
     setEditingProductId(null);
     setIsSlugEdited(false);
+    setProductImageFile(null);
   };
 
   const handleEditProduct = (product: Product) => {
     setEditingProductId(product.id);
     setIsSlugEdited(true);
+    setProductImageFile(null);
     setProductForm({
       name: product.name,
       slug: product.slug,
       description: product.description || "",
       imageUrl: product.image_url || "",
       price: String(product.price),
+      promoPrice: product.promo_price ? String(product.promo_price) : "",
+      promoStartsAt: toDateTimeInputValue(product.promo_starts_at),
+      promoEndsAt: toDateTimeInputValue(product.promo_ends_at),
       stock: String(product.stock),
       categoryId: product.category_id,
     });
@@ -211,10 +269,18 @@ export default function AdminProductsPage() {
         return;
       }
 
+      const imageUrl = productImageFile
+        ? await uploadProductImage(productImageFile)
+        : result.data.imageUrl;
+      const productData = {
+        ...result.data,
+        imageUrl,
+      };
+
       if (editingProductId) {
-        await updateProduct(editingProductId, result.data);
+        await updateProduct(editingProductId, productData);
       } else {
-        await createProduct(result.data);
+        await createProduct(productData);
       }
 
       resetProductForm();
@@ -385,6 +451,45 @@ export default function AdminProductsPage() {
             </div>
           </div>
 
+          <div className="grid gap-4 sm:grid-cols-3 lg:col-span-2">
+            <div className="space-y-2">
+              <Label
+                className="font-mono uppercase tracking-[0.12em] text-cyan"
+                htmlFor="product-promo-price"
+              >
+                Cena promocyjna
+              </Label>
+              <Input
+                className="border-border bg-base text-text-bright focus-visible:border-cyan focus-visible:ring-cyan/30"
+                id="product-promo-price"
+                min="0"
+                onChange={(event) =>
+                  updateProductForm("promoPrice", event.target.value)
+                }
+                placeholder="Opcjonalnie"
+                step="0.01"
+                type="number"
+                value={productForm.promoPrice}
+              />
+            </div>
+            <div className="space-y-2">
+              <PromotionDatePicker
+                id="product-promo-starts-at"
+                label="Start promocji"
+                onChange={(value) => updateProductForm("promoStartsAt", value)}
+                value={productForm.promoStartsAt}
+              />
+            </div>
+            <div className="space-y-2">
+              <PromotionDatePicker
+                id="product-promo-ends-at"
+                label="Koniec promocji"
+                onChange={(value) => updateProductForm("promoEndsAt", value)}
+                value={productForm.promoEndsAt}
+              />
+            </div>
+          </div>
+
           <div className="space-y-2 lg:col-span-2">
             <Label
               className="font-mono uppercase tracking-[0.12em] text-cyan"
@@ -400,6 +505,27 @@ export default function AdminProductsPage() {
               type="url"
               value={productForm.imageUrl}
             />
+          </div>
+
+          <div className="space-y-2 lg:col-span-2">
+            <Label
+              className="font-mono uppercase tracking-[0.12em] text-cyan"
+              htmlFor="product-image-file"
+            >
+              Plik zdjęcia
+            </Label>
+            <Input
+              accept="image/jpeg,image/png,image/webp"
+              className="border-border bg-base text-text-bright file:mr-3 file:border-0 file:bg-cyan file:px-3 file:py-1 file:text-black focus-visible:border-cyan focus-visible:ring-cyan/30"
+              id="product-image-file"
+              onChange={(event) =>
+                setProductImageFile(event.target.files?.[0] ?? null)
+              }
+              type="file"
+            />
+            <p className="text-caption text-muted-foreground">
+              Jeśli wybierzesz plik, nadpisze on URL zdjęcia po zapisaniu produktu.
+            </p>
           </div>
 
           <div className="space-y-2 lg:col-span-2">
@@ -520,9 +646,11 @@ export default function AdminProductsPage() {
               </TableRow>
             ) : null}
 
-            {!isProductsLoading
+                {!isProductsLoading
               ? products.map((product) => {
                   const isPending = pendingProductId === product.id;
+                  const hasPromotion = isPromotionActive(product);
+                  const effectivePrice = getEffectiveProductPrice(product);
 
                   return (
                     <TableRow className="border-border" key={product.id}>
@@ -551,8 +679,20 @@ export default function AdminProductsPage() {
                       <TableCell className="text-muted-foreground">
                         {product.category?.name ?? product.category_id}
                       </TableCell>
-                      <TableCell className="font-mono font-bold text-cyan">
-                        {formatPrice(product.price)}
+                      <TableCell className="font-mono">
+                        {hasPromotion ? (
+                          <p className="text-xs text-muted-foreground line-through">
+                            {formatPrice(product.price)}
+                          </p>
+                        ) : null}
+                        <p className="font-bold text-cyan">
+                          {formatPrice(effectivePrice)}
+                        </p>
+                        {hasPromotion ? (
+                          <p className="mt-1 text-label uppercase tracking-[0.1em] text-amber">
+                            Promocja
+                          </p>
+                        ) : null}
                       </TableCell>
                       <TableCell className="text-text-bright">
                         {product.stock}
@@ -671,4 +811,87 @@ function slugify(value: string) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
+}
+
+function PromotionDatePicker({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const selectedDate = getDateTimeDate(value);
+  const selectedTime = getDateTimeTime(value);
+
+  return (
+    <div className="space-y-2">
+      <Label className="font-mono uppercase tracking-[0.12em] text-cyan" htmlFor={id}>
+        {label}
+      </Label>
+      <div className="grid gap-2">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              className="h-10 justify-start border-border bg-base text-left font-mono text-text-bright hover:bg-elevated hover:text-cyan"
+              id={id}
+              type="button"
+              variant="outline"
+            >
+              <CalendarBlank />
+              {selectedDate
+                ? format(selectedDate, "dd MMM yyyy", { locale: pl })
+                : "Wybierz datę"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            className="w-auto border-border bg-surface p-0 text-text shadow-cyan"
+          >
+            <Calendar
+              className="bg-surface text-text"
+              locale={pl}
+              mode="single"
+              onSelect={(date) => {
+                if (!date) {
+                  onChange("");
+                  return;
+                }
+
+                onChange(toDateTimeLocalValue(date, selectedTime));
+              }}
+              selected={selectedDate}
+            />
+          </PopoverContent>
+        </Popover>
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <Input
+            className="border-border bg-base text-text-bright focus-visible:border-cyan focus-visible:ring-cyan/30"
+            disabled={!selectedDate}
+            onChange={(event) => {
+              if (!selectedDate) {
+                return;
+              }
+
+              onChange(toDateTimeLocalValue(selectedDate, event.target.value));
+            }}
+            type="time"
+            value={selectedTime}
+          />
+          <Button
+            className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+            disabled={!value}
+            onClick={() => onChange("")}
+            type="button"
+            variant="outline"
+          >
+            Wyczyść
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }

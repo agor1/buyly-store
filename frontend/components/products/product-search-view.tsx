@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Funnel,
-  MagnifyingGlass,
-  SlidersHorizontal,
-  X,
-} from "@phosphor-icons/react/dist/ssr";
+import { Funnel, SlidersHorizontal } from "@phosphor-icons/react/dist/ssr";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -16,12 +11,6 @@ import ProductsListSkeleton from "@/components/products/products-list-skeleton";
 import SortMenu from "@/components/products/sort-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group";
 import {
   Pagination,
   PaginationContent,
@@ -45,13 +34,11 @@ const productsPerPage = 9;
 
 export default function ProductSearchView() {
   const searchParams = useSearchParams();
-  const initialSearch = searchParams.get("q") ?? "";
+  const searchTerm = searchParams.get("q") ?? "";
   const initialCategoryId = searchParams.get("categoryId") ?? "all";
   const initialSort = getValidSort(searchParams.get("sort"));
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [searchInput, setSearchInput] = useState(initialSearch);
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [minPriceInput, setMinPriceInput] = useState("");
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [priceRange, setPriceRange] = useState<{
@@ -144,19 +131,6 @@ export default function ProductSearchView() {
     };
   }, []);
 
-  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    setSearchTerm(searchInput);
-    setCurrentPage(1);
-  };
-
-  const handleClearSearch = () => {
-    setSearchInput("");
-    setSearchTerm("");
-    setCurrentPage(1);
-  };
-
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
     setCurrentPage(1);
@@ -186,7 +160,7 @@ export default function ProductSearchView() {
   return (
     <main className="scanlines flex-1 overflow-x-hidden bg-base text-text">
       <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 md:py-12 lg:px-10">
-        <div className="mb-8 grid gap-6 lg:grid-cols-[1fr_360px] lg:items-end">
+        <div className="mb-8">
           <div>
             <p className="font-mono text-label uppercase tracking-[0.18em] text-cyan">
               {"// produkty"}
@@ -198,42 +172,12 @@ export default function ProductSearchView() {
               Przeglądaj wyniki, zawężaj kategorie i szybko porównuj produkty w
               marketplace Buyly.
             </p>
+            {searchTerm.trim() ? (
+              <p className="mt-4 font-mono text-sm text-cyan">
+                Wyniki dla: {searchTerm.trim()}
+              </p>
+            ) : null}
           </div>
-
-          <form className="w-full" onSubmit={handleSearchSubmit}>
-            <InputGroup className="h-11 border-border bg-surface text-text-bright shadow-cyan focus-within:border-cyan focus-within:ring-1 focus-within:ring-cyan/30">
-              <InputGroupAddon>
-                <MagnifyingGlass className="text-cyan" />
-              </InputGroupAddon>
-              <InputGroupInput
-                aria-label="Wyszukaj produkty"
-                className="h-11 text-text-bright placeholder:text-muted-foreground"
-                name="q"
-                onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="Nazwa produktu, marka, kategoria"
-                value={searchInput}
-                type="search"
-              />
-              <InputGroupAddon align="inline-end">
-                {searchInput ? (
-                  <InputGroupButton
-                    aria-label="Wyczyść wyszukiwanie"
-                    onClick={handleClearSearch}
-                    size="icon-xs"
-                    type="button"
-                  >
-                    <X />
-                  </InputGroupButton>
-                ) : null}
-                <InputGroupButton
-                  className="bg-cyan px-3 text-black hover:bg-cyan-dim"
-                  type="submit"
-                >
-                  Szukaj
-                </InputGroupButton>
-              </InputGroupAddon>
-            </InputGroup>
-          </form>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[260px_1fr]">

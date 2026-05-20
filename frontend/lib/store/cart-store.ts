@@ -10,6 +10,9 @@ export type CartItem = {
   name: string;
   slug: string;
   price: number;
+  promo_price?: number | string | null;
+  promo_starts_at?: string | null;
+  promo_ends_at?: string | null;
   quantity: number;
 };
 
@@ -35,6 +38,9 @@ const mapCartItems = (items: cartApi.CartItemResponse[]): CartItem[] =>
     name: item.product.name,
     slug: item.product.slug,
     price: Number(item.product.price),
+    promo_price: item.product.promo_price,
+    promo_starts_at: item.product.promo_starts_at,
+    promo_ends_at: item.product.promo_ends_at,
     quantity: item.quantity,
   }));
 

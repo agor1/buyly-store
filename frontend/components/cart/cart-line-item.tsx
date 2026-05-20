@@ -2,7 +2,11 @@ import Link from "next/link";
 import { Minus, Plus, ShoppingCartSimple, Trash } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
-import { formatPrice } from "@/lib/product-utils";
+import {
+  formatPrice,
+  getEffectiveProductPrice,
+  isPromotionActive,
+} from "@/lib/product-utils";
 import type { CartItem } from "@/lib/store/cart-store";
 
 interface CartLineItemProps {
@@ -16,6 +20,9 @@ export default function CartLineItem({
   onRemove,
   onUpdateQuantity,
 }: CartLineItemProps) {
+  const hasPromotion = isPromotionActive(item);
+  const effectivePrice = getEffectiveProductPrice(item);
+
   return (
     <article className="grid gap-4 border border-border bg-surface p-4 md:grid-cols-[1fr_auto] md:items-center">
       <div className="flex gap-4">
@@ -35,9 +42,16 @@ export default function CartLineItem({
           >
             {item.name}
           </Link>
-          <p className="mt-2 font-mono text-sm text-muted-foreground">
-            Cena: {formatPrice(String(item.price))}
-          </p>
+          <div className="mt-2 font-mono text-sm">
+            {hasPromotion ? (
+              <p className="text-xs text-muted-foreground line-through">
+                {formatPrice(item.price)}
+              </p>
+            ) : null}
+            <p className="text-muted-foreground">
+              Cena: {formatPrice(effectivePrice)}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -68,7 +82,7 @@ export default function CartLineItem({
           </Button>
         </div>
         <p className="min-w-24 font-mono text-price font-bold text-cyan">
-          {formatPrice(String(item.price * item.quantity))}
+          {formatPrice(effectivePrice * item.quantity)}
         </p>
         <Button
           aria-label="Usuń produkt"

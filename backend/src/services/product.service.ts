@@ -114,7 +114,18 @@ export const getProducts = async ({
 };
 
 export const addProduct = async (data: ProductData) => {
-  const { name, slug, description, imageUrl, price, stock, categoryId } = data;
+  const {
+    name,
+    slug,
+    description,
+    imageUrl,
+    price,
+    stock,
+    categoryId,
+    promoPrice,
+    promoStartsAt,
+    promoEndsAt,
+  } = data;
   const category = await ensureCategoryExists(categoryId);
 
   try {
@@ -125,6 +136,9 @@ export const addProduct = async (data: ProductData) => {
         description: description || "",
         image_url: imageUrl || null,
         price: price || 0,
+        promo_price: promoPrice ?? null,
+        promo_starts_at: promoStartsAt ? new Date(promoStartsAt) : null,
+        promo_ends_at: promoEndsAt ? new Date(promoEndsAt) : null,
         stock: stock || 0,
         category_id: category.id,
       },
@@ -138,7 +152,18 @@ export const addProduct = async (data: ProductData) => {
 };
 
 export const updateProduct = async (id: string, data: ProductData) => {
-  const { name, slug, description, imageUrl, price, stock, categoryId } = data;
+  const {
+    name,
+    slug,
+    description,
+    imageUrl,
+    price,
+    stock,
+    categoryId,
+    promoPrice,
+    promoStartsAt,
+    promoEndsAt,
+  } = data;
 
   const product = await prisma.product.findUnique({ where: { id } });
   if (!product) {
@@ -156,6 +181,9 @@ export const updateProduct = async (id: string, data: ProductData) => {
         description: description || "",
         image_url: imageUrl || null,
         price: price || 0,
+        promo_price: promoPrice ?? null,
+        promo_starts_at: promoStartsAt ? new Date(promoStartsAt) : null,
+        promo_ends_at: promoEndsAt ? new Date(promoEndsAt) : null,
         stock: stock || 0,
         category_id: category.id,
       },

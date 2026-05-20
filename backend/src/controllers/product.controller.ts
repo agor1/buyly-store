@@ -23,14 +23,27 @@ export const getAllProducts = async (req: Request, res: Response) => {
 };
 
 export const createProduct = async (req: Request, res: Response) => {
-  const { name, slug, description, imageUrl, price, stock, categoryId } =
-    req.body;
+  const {
+    name,
+    slug,
+    description,
+    imageUrl,
+    price,
+    promoPrice,
+    promoStartsAt,
+    promoEndsAt,
+    stock,
+    categoryId,
+  } = req.body;
   const newProduct = await addProduct({
     name,
     slug,
     description,
     imageUrl,
     price,
+    promoPrice,
+    promoStartsAt,
+    promoEndsAt,
     stock,
     categoryId,
   });
@@ -40,14 +53,27 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const updateProductById = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, slug, description, imageUrl, price, stock, categoryId } =
-    req.body;
+  const {
+    name,
+    slug,
+    description,
+    imageUrl,
+    price,
+    promoPrice,
+    promoStartsAt,
+    promoEndsAt,
+    stock,
+    categoryId,
+  } = req.body;
   const updatedProduct = await updateProduct(id, {
     name,
     slug,
     description,
     imageUrl,
     price,
+    promoPrice,
+    promoStartsAt,
+    promoEndsAt,
     stock,
     categoryId,
   });

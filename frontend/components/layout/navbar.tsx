@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import Link from "next/link";
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/drawer";
 import {
   List,
+  Heart,
   MagnifyingGlass,
   ShoppingCart,
   SignIn,
@@ -32,6 +33,9 @@ import {
 import { useAuth } from "@/app/hooks/useAuth";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useFavoritesStore } from "@/lib/store/favorites-store";
+import { getProducts, type Product } from "@/lib/api/products";
+import { formatPrice, getEffectiveProductPrice } from "@/lib/product-utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,6 +62,148 @@ const navLinks = [
   },
 ];
 
+function SearchAutocomplete({
+  className,
+  inputGroupClassName = "h-9 w-full max-w-xs border-border bg-surface text-text-bright focus-within:border-cyan focus-within:ring-1 focus-within:ring-cyan/30 xl:max-w-sm",
+  inputClassName = "h-9 text-text-bright placeholder:text-muted-foreground",
+  wrapperClassName = "w-full max-w-xs xl:max-w-sm",
+}: {
+  className?: string;
+  inputGroupClassName?: string;
+  inputClassName?: string;
+  wrapperClassName?: string;
+}) {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Product[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery.length < 2) {
+      return;
+    }
+
+    let isCurrent = true;
+    const timeout = window.setTimeout(() => {
+      getProducts({ limit: 5, page: 1, search: trimmedQuery })
+        .then((response) => {
+          if (isCurrent) {
+            setResults(response.data);
+          }
+        })
+        .catch(() => {
+          if (isCurrent) {
+            setResults([]);
+          }
+        })
+        .finally(() => {
+          if (isCurrent) {
+            setIsLoading(false);
+          }
+        });
+    }, 220);
+
+    return () => {
+      isCurrent = false;
+      window.clearTimeout(timeout);
+    };
+  }, [query]);
+
+  const trimmedQuery = query.trim();
+  const shouldShowDropdown = isOpen && trimmedQuery.length >= 2;
+
+  return (
+    <form action="/products/search" className={className ?? "w-full"}>
+      <div className={`relative ${wrapperClassName}`}>
+        <InputGroup className={inputGroupClassName}>
+          <InputGroupAddon>
+            <MagnifyingGlass className="text-cyan" />
+          </InputGroupAddon>
+          <InputGroupInput
+            aria-autocomplete="list"
+            aria-expanded={shouldShowDropdown}
+            aria-label="Wyszukaj produkty"
+            className={inputClassName}
+            name="q"
+            onBlur={() => {
+              window.setTimeout(() => setIsOpen(false), 120);
+            }}
+            onChange={(event) => {
+              const nextQuery = event.target.value;
+
+              setQuery(nextQuery);
+              setIsOpen(true);
+
+              if (nextQuery.trim().length < 2) {
+                setResults([]);
+                setIsLoading(false);
+              } else {
+                setIsLoading(true);
+              }
+            }}
+            onFocus={() => setIsOpen(true)}
+            placeholder="Szukaj produktów"
+            type="search"
+            value={query}
+          />
+        </InputGroup>
+
+        {shouldShowDropdown ? (
+          <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden border border-border bg-surface shadow-cyan">
+            <div className="border-b border-border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.16em] text-cyan">
+              Wyniki wyszukiwania
+            </div>
+            {isLoading ? (
+              <div className="px-3 py-4 text-sm text-muted-foreground">
+                Skanuję katalog...
+              </div>
+            ) : results.length > 0 ? (
+              <div className="max-h-80 overflow-y-auto">
+                {results.map((product) => (
+                  <Link
+                    className="flex items-center gap-3 border-b border-border px-3 py-3 transition-colors last:border-b-0 hover:bg-elevated"
+                    href={`/products/${product.slug}`}
+                    key={product.id}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <div className="grid size-10 shrink-0 place-items-center border border-border bg-base font-mono text-xs font-bold text-cyan">
+                      {product.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-text-bright">
+                        {product.name}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {product.category?.name ?? "Produkt"}
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-mono text-xs text-cyan">
+                      {formatPrice(getEffectiveProductPrice(product))}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="px-3 py-4 text-sm text-muted-foreground">
+                Brak produktów dla „{trimmedQuery}”.
+              </div>
+            )}
+            <Link
+              className="block border-t border-border px-3 py-2 text-center font-mono text-xs uppercase tracking-[0.14em] text-cyan transition-colors hover:bg-elevated"
+              href={`/products/search?q=${encodeURIComponent(trimmedQuery)}`}
+              onClick={() => setIsOpen(false)}
+            >
+              Zobacz wszystkie wyniki
+            </Link>
+          </div>
+        ) : null}
+      </div>
+    </form>
+  );
+}
+
 export default function Navbar() {
   const { hasHydrated, user } = useAuthStore();
   const { logout, loading } = useAuth();
@@ -65,8 +211,13 @@ export default function Navbar() {
   const isAuthenticated = !!user;
   const setCartOwner = useCartStore((state) => state.setCartOwner);
   const loadCart = useCartStore((state) => state.loadCart);
+  const setFavoritesOwner = useFavoritesStore((state) => state.setFavoritesOwner);
+  const loadFavorites = useFavoritesStore((state) => state.loadFavorites);
   const cartItemsCount = useCartStore((state) =>
     state.items.reduce((total, item) => total + item.quantity, 0),
+  );
+  const favoritesCount = useFavoritesStore((state) =>
+    state.hasHydrated ? state.items.length : 0,
   );
 
   useEffect(() => {
@@ -75,10 +226,12 @@ export default function Navbar() {
     }
 
     setCartOwner(user?.id ?? null);
+    setFavoritesOwner(user?.id ?? null);
     if (user?.id) {
       void loadCart();
+      void loadFavorites();
     }
-  }, [hasHydrated, loadCart, setCartOwner, user?.id]);
+  }, [hasHydrated, loadCart, loadFavorites, setCartOwner, setFavoritesOwner, user?.id]);
 
   const handleLogout = async () => {
     await logout();
@@ -109,23 +262,7 @@ export default function Navbar() {
         />
       </Link>
 
-      <form
-        action="/products/search"
-        className="hidden min-w-0 flex-1 justify-center md:flex"
-      >
-        <InputGroup className="h-9 w-full max-w-xs border-border bg-surface text-text-bright focus-within:border-cyan focus-within:ring-1 focus-within:ring-cyan/30 xl:max-w-sm">
-          <InputGroupAddon>
-            <MagnifyingGlass className="text-cyan" />
-          </InputGroupAddon>
-          <InputGroupInput
-            aria-label="Wyszukaj produkty"
-            className="h-9 text-text-bright placeholder:text-muted-foreground"
-            name="q"
-            placeholder="Szukaj produktów"
-            type="search"
-          />
-        </InputGroup>
-      </form>
+      <SearchAutocomplete className="hidden min-w-0 flex-1 justify-center md:flex" />
 
       <div className="xl:hidden">
         <Drawer direction="right">
@@ -149,20 +286,11 @@ export default function Navbar() {
               </DrawerDescription>
             </DrawerHeader>
             <div className="px-4 pb-2">
-              <form action="/products/search">
-                <InputGroup className="h-10 border-border bg-base text-text-bright focus-within:border-cyan focus-within:ring-1 focus-within:ring-cyan/30">
-                  <InputGroupAddon>
-                    <MagnifyingGlass className="text-cyan" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    aria-label="Wyszukaj produkty"
-                    className="h-10 text-text-bright placeholder:text-muted-foreground"
-                    name="q"
-                    placeholder="Szukaj produktów"
-                    type="search"
-                  />
-                </InputGroup>
-              </form>
+              <SearchAutocomplete
+                inputClassName="h-10 text-text-bright placeholder:text-muted-foreground"
+                inputGroupClassName="h-10 border-border bg-base text-text-bright focus-within:border-cyan focus-within:ring-1 focus-within:ring-cyan/30"
+                wrapperClassName="w-full"
+              />
             </div>
             <div className="flex flex-col px-4">
               {navLinks.map((link) => (
@@ -202,6 +330,14 @@ export default function Navbar() {
                       className="border-b border-border px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-cyan"
                     >
                       Koszyk
+                    </Link>
+                  </DrawerClose>
+                  <DrawerClose asChild>
+                    <Link
+                      href="/favorites"
+                      className="border-b border-border px-4 py-3 text-sm text-muted-foreground transition-colors hover:text-cyan"
+                    >
+                      Ulubione
                     </Link>
                   </DrawerClose>
                   <DrawerClose asChild>
@@ -326,6 +462,21 @@ export default function Navbar() {
                 ) : null}
               </Link>
             </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="relative border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
+            >
+              <Link href="/favorites">
+                Ulubione
+                <Heart />
+                {favoritesCount > 0 ? (
+                  <span className="absolute -right-2 -top-2 grid size-5 place-items-center border border-cyan bg-base font-mono text-[10px] font-bold text-cyan">
+                    {favoritesCount}
+                  </span>
+                ) : null}
+              </Link>
+            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="hover:cursor-pointer">
@@ -348,6 +499,9 @@ export default function Navbar() {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/orders">Moje zamówienia</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/favorites">Ulubione</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/profile/settings">Ustawienia</Link>

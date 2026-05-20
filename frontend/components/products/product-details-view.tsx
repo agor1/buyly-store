@@ -1,16 +1,24 @@
+"use client";
+
 import {
   ArrowLeft,
   Package,
   ShieldCheck,
   Truck,
-} from "@phosphor-icons/react/dist/ssr";
+} from "@phosphor-icons/react";
 import Link from "next/link";
 
 import Footer from "@/components/layout/footer";
 import AddToCartControls from "@/components/products/add-to-cart-controls";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/lib/api/products";
-import { formatPrice, getStockLabel } from "@/lib/product-utils";
+import {
+  formatPrice,
+  getEffectiveProductPrice,
+  getStockLabel,
+  isPromotionActive,
+} from "@/lib/product-utils";
+import { usePromotionClock } from "@/lib/hooks/use-promotion-clock";
 
 interface ProductDetailsViewProps {
   product: Product;
@@ -37,7 +45,10 @@ const benefits = [
 export default function ProductDetailsView({
   product,
 }: ProductDetailsViewProps) {
+  usePromotionClock();
   const category = product.category?.name ?? "Produkt";
+  const hasPromotion = isPromotionActive(product);
+  const effectivePrice = getEffectiveProductPrice(product);
   const stockLabel = getStockLabel(product.stock);
   const specs = [
     { label: "Kategoria", value: category },
@@ -102,9 +113,21 @@ export default function ProductDetailsView({
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-3 border-y border-border py-5">
-                <p className="font-mono text-3xl font-bold text-cyan">
-                  {formatPrice(product.price)}
-                </p>
+                <div className="font-mono">
+                  {hasPromotion ? (
+                    <p className="text-sm text-muted-foreground line-through">
+                      {formatPrice(product.price)}
+                    </p>
+                  ) : null}
+                  <p className="text-3xl font-bold text-cyan">
+                    {formatPrice(effectivePrice)}
+                  </p>
+                </div>
+                {hasPromotion ? (
+                  <span className="border-hairline border-amber bg-amber-bg px-2 py-1 font-mono text-label font-bold uppercase tracking-[0.12em] text-amber">
+                    Promocja
+                  </span>
+                ) : null}
                 <span className="border-hairline border-green bg-green-bg px-2 py-1 font-mono text-label font-bold uppercase tracking-[0.12em] text-green">
                   {stockLabel}
                 </span>

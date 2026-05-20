@@ -8,6 +8,9 @@ export interface CartProduct {
   stock: number;
   image_url?: string | null;
   is_active: boolean;
+  promo_price?: number | string | null;
+  promo_starts_at?: string | null;
+  promo_ends_at?: string | null;
 }
 
 export interface CartItemResponse {

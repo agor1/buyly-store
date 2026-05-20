@@ -3,7 +3,7 @@ import { z } from "zod";
 export const createOrderSchema = z.object({
   shippingAddress: z.string().min(1, "Shipping address is required"),
   shippingType: z.enum(["courier", "parcel_locker", "pickup"]),
-  paymentType: z.string().min(1, "Payment type is required"),
+  paymentType: z.enum(["card", "blik", "cash_on_delivery"]),
   items: z
     .array(
       z.object({

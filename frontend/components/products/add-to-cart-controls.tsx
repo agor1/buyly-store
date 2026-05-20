@@ -5,8 +5,10 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/lib/api/products";
+import { usePromotionClock } from "@/lib/hooks/use-promotion-clock";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
+import { useFavoritesStore } from "@/lib/store/favorites-store";
 
 interface AddToCartControlsProps {
   product: Product;
@@ -15,9 +17,15 @@ interface AddToCartControlsProps {
 export default function AddToCartControls({
   product,
 }: AddToCartControlsProps) {
+  usePromotionClock();
   const [quantity, setQuantity] = useState(1);
   const { hasHydrated, user } = useAuthStore();
   const addItem = useCartStore((state) => state.addItem);
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const hasFavoritesHydrated = useFavoritesStore((state) => state.hasHydrated);
+  const isFavorite = useFavoritesStore((state) =>
+    state.hasHydrated ? state.isFavorite(product.id) : false,
+  );
   const cartQuantity = useCartStore(
     (state) =>
       state.items.find((item) => item.productId === product.id)?.quantity ?? 0,
@@ -30,6 +38,7 @@ export default function AddToCartControls({
     !!user &&
     (user?.role === "CUSTOMER" || user?.role === "ADMIN");
   const canAddToCart = canUseCart && availableStock > 0;
+  const canUseFavorites = canUseCart && hasFavoritesHydrated;
   const addToCartLabel = !canUseCart
     ? "Tylko dla klienta"
     : availableStock <= 0
@@ -47,6 +56,9 @@ export default function AddToCartControls({
         name: product.name,
         slug: product.slug,
         price: Number(product.price),
+        promo_price: product.promo_price,
+        promo_starts_at: product.promo_starts_at,
+        promo_ends_at: product.promo_ends_at,
       },
       selectedQuantity,
     );
@@ -94,13 +106,19 @@ export default function AddToCartControls({
         <ShoppingCart />
       </Button>
       <Button
-        aria-label="Dodaj do ulubionych"
-        className="h-11 border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+        aria-label={isFavorite ? "Usuń z ulubionych" : "Dodaj do ulubionych"}
+        className={
+          isFavorite
+            ? "h-11 border-cyan bg-cyan-bg text-cyan hover:bg-elevated"
+            : "h-11 border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+        }
+        disabled={!canUseFavorites}
+        onClick={() => void toggleFavorite(product)}
         size="icon"
         type="button"
         variant="outline"
       >
-        <Heart />
+        <Heart weight={isFavorite ? "fill" : "regular"} />
       </Button>
     </div>
   );

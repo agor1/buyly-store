@@ -8,6 +8,9 @@ export interface Product {
   description?: string;
   image_url?: string | null;
   price: string;
+  promo_price?: string | null;
+  promo_starts_at?: string | null;
+  promo_ends_at?: string | null;
   stock: number;
   is_active: boolean;
   created_at: string;
@@ -60,6 +63,9 @@ export interface CreateProductPayload {
   description?: string;
   imageUrl?: string;
   price: number;
+  promoPrice?: number | null;
+  promoStartsAt?: string | null;
+  promoEndsAt?: string | null;
   stock?: number;
   categoryId: string;
 }
@@ -93,6 +99,23 @@ export const updateProduct = async (
   return response.data;
 };
 
+export const uploadProductImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await api.post<{ imageUrl: string }>(
+    "/uploads/product-image",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+
+  return response.data.imageUrl;
+};
+
 export const deleteProduct = async (id: string) => {
   await api.delete(`/products/${id}`);
 };
@@ -103,6 +126,7 @@ const productsApi = {
   getProduct,
   getProducts,
   updateProduct,
+  uploadProductImage,
 };
 
 export default productsApi;

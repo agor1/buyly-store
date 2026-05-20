@@ -101,7 +101,10 @@ export default function OrdersPage() {
           </div>
         </Reveal>
 
-        <Reveal className="mt-6 border-hairline border-border bg-surface p-5 shadow-cyan" delay={0.08}>
+        <Reveal
+          className="mt-6 border-hairline border-border bg-surface p-5 shadow-cyan"
+          delay={0.08}
+        >
           {isLoading ? (
             <div className="border border-border bg-base p-5 font-mono text-caption uppercase tracking-[0.14em] text-cyan">
               Ładowanie zamówień...
@@ -162,12 +165,17 @@ export default function OrdersPage() {
                     <InfoTile
                       icon={Truck}
                       label="Dostawa"
-                      value={shippingLabels[order.shipping_type] ?? order.shipping_type}
+                      value={
+                        shippingLabels[order.shipping_type] ??
+                        order.shipping_type
+                      }
                     />
                     <InfoTile
                       icon={Wallet}
                       label="Płatność"
-                      value={paymentLabels[order.payment_type] ?? order.payment_type}
+                      value={
+                        paymentLabels[order.payment_type] ?? order.payment_type
+                      }
                     />
                     <InfoTile
                       icon={Package}
@@ -190,7 +198,7 @@ export default function OrdersPage() {
                         key={item.id}
                       >
                         <div className="min-w-0">
-                          <p className="font-display text-base font-bold text-text-bright">
+                          <p className="font-display text-text-bright font-bold">
                             {item.product.name}
                           </p>
                           <p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -198,7 +206,9 @@ export default function OrdersPage() {
                           </p>
                         </div>
                         <p className="font-mono text-sm font-bold text-cyan">
-                          {formatPrice(String(Number(item.unit_price) * item.quantity))}
+                          {formatPrice(
+                            String(Number(item.unit_price) * item.quantity),
+                          )}
                         </p>
                       </div>
                     ))}

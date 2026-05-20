@@ -64,28 +64,58 @@ export const checkoutFormSchema = z.object({
   paymentType: z.enum(["card", "blik", "cash_on_delivery"]),
 });
 
-export const productFormSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Nazwa produktu jest wymagana")
-    .min(3, "Nazwa musi mieć minimum 3 znaki"),
-  slug: z.string().trim().min(1, "Slug jest wymagany"),
-  description: z
-    .string()
-    .trim()
-    .optional()
-    .transform((value) => value || undefined),
-  imageUrl: z
-    .string()
-    .trim()
-    .optional()
-    .transform((value) => value || undefined)
-    .pipe(z.string().url("Podaj poprawny adres URL zdjęcia").optional()),
-  price: z.coerce.number().min(0, "Cena nie może być ujemna"),
-  stock: z.coerce.number().int("Stan magazynowy musi być liczbą całkowitą").min(0, "Stan magazynowy nie może być ujemny"),
-  categoryId: z.string().min(1, "Kategoria jest wymagana"),
-});
+const optionalDateTimeInput = z
+  .string()
+  .optional()
+  .transform((value) => (value ? new Date(value).toISOString() : undefined));
+
+export const productFormSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, "Nazwa produktu jest wymagana")
+      .min(3, "Nazwa musi mieć minimum 3 znaki"),
+    slug: z.string().trim().min(1, "Slug jest wymagany"),
+    description: z
+      .string()
+      .trim()
+      .optional()
+      .transform((value) => value || undefined),
+    imageUrl: z
+      .string()
+      .trim()
+      .optional()
+      .transform((value) => value || undefined)
+      .pipe(z.string().url("Podaj poprawny adres URL zdjęcia").optional()),
+    price: z.coerce.number().min(0, "Cena nie może być ujemna"),
+    promoPrice: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.coerce.number().min(0, "Cena promocyjna nie może być ujemna").optional(),
+    ),
+    promoStartsAt: optionalDateTimeInput,
+    promoEndsAt: optionalDateTimeInput,
+    stock: z.coerce
+      .number()
+      .int("Stan magazynowy musi być liczbą całkowitą")
+      .min(0, "Stan magazynowy nie może być ujemny"),
+    categoryId: z.string().min(1, "Kategoria jest wymagana"),
+  })
+  .refine(
+    ({ price, promoPrice }) => promoPrice === undefined || promoPrice < price,
+    {
+      message: "Cena promocyjna musi być niższa od ceny regularnej",
+      path: ["promoPrice"],
+    },
+  )
+  .refine(
+    ({ promoStartsAt, promoEndsAt }) =>
+      !promoStartsAt || !promoEndsAt || new Date(promoStartsAt) < new Date(promoEndsAt),
+    {
+      message: "Start promocji musi być wcześniejszy niż koniec",
+      path: ["promoStartsAt"],
+    },
+  );
 
 export const priceFilterSchema = z
   .object({

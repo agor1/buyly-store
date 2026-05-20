@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma.js";
 import { Prisma } from "../generated/prisma/client.js";
 import { OrderData, OrderStatus } from "../types/order.types.js";
 import { BadRequestError, NotFoundError } from "../errors/app-error.js";
+import { getEffectiveProductPrice } from "../utils/product-pricing.js";
 
 interface GetOrdersOptions {
   page: number;
@@ -198,7 +199,7 @@ export const createOrder = async ({
         throw new BadRequestError("Nie znaleziono produktu z koszyka.");
       }
 
-      return sum.add(product.price.mul(item.quantity));
+      return sum.add(getEffectiveProductPrice(product).mul(item.quantity));
     }, new Prisma.Decimal(0));
     const totalPrice = productsTotalPrice.add(shippingPrices[shippingType]);
 
@@ -219,7 +220,9 @@ export const createOrder = async ({
       });
 
       if (updatedProduct.count !== 1) {
-        throw new BadRequestError("Brak wystarczającej ilości produktu w magazynie.");
+        throw new BadRequestError(
+          "Brak wystarczającej ilości produktu w magazynie.",
+        );
       }
     }
 
@@ -240,7 +243,7 @@ export const createOrder = async ({
             return {
               product_id: item.productId,
               quantity: item.quantity,
-              unit_price: product.price,
+              unit_price: getEffectiveProductPrice(product),
             };
           }),
         },
@@ -289,13 +292,21 @@ export const updateOrderStatus = async (
       throw new NotFoundError("Order not found");
     }
 
-    if (order.status === OrderStatus.CANCELLED && status !== OrderStatus.CANCELLED) {
+    if (
+      order.status === OrderStatus.CANCELLED &&
+      status !== OrderStatus.CANCELLED
+    ) {
       throw new BadRequestError("Cancelled order cannot be reactivated.");
     }
 
-    if (status === OrderStatus.CANCELLED && order.status !== OrderStatus.CANCELLED) {
+    if (
+      status === OrderStatus.CANCELLED &&
+      order.status !== OrderStatus.CANCELLED
+    ) {
       if (isFulfilledOrder(order.status)) {
-        throw new BadRequestError("Nie można anulować zrealizowanego zamówienia.");
+        throw new BadRequestError(
+          "Nie można anulować zrealizowanego zamówienia.",
+        );
       }
 
       if (canRestoreOrderStock(order.status)) {

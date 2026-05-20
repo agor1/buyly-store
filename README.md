@@ -4,7 +4,7 @@
 
 Buyly Store is a TypeScript e-commerce project split into two applications:
 
-- `backend/` - Express API with Prisma, PostgreSQL, Zod validation, JWT auth, cart and order routes, and contact email delivery.
+- `backend/` - Express API with Prisma, PostgreSQL, Zod validation, JWT auth, cart, favorites, orders, product promotions, Cloudinary image upload, and contact email delivery.
 - `frontend/` - Next.js App Router storefront with guest, customer, and admin views.
 
 The frontend talks to the backend through `/api` endpoints and stores authentication state client-side while the backend uses cookies for authenticated flows.
@@ -12,10 +12,11 @@ The frontend talks to the backend through `/api` endpoints and stores authentica
 ## Features
 
 - Guest storefront with product browsing, search, contact form, login, and registration pages.
-- Customer cart and checkout flow with separate delivery address fields for city, postal code, street, and house number.
+- Customer cart, favorites, and checkout flow with separate delivery address fields for city, postal code, street, and house number.
 - Customer profile page with username editing and password change confirmation. After a successful password change, the user is logged out and redirected to `/login`.
 - Customer order history with status, shipping, payment, and ordered product details.
-- Admin panel routes for products and orders.
+- Admin panel routes for products and orders, including product image upload and promotion date/price fields.
+- Product promotions with backend-side effective price calculation for orders.
 - Shared motion helpers for page and section reveal animations, with reduced-motion support.
 
 ## Project Structure
@@ -28,6 +29,8 @@ backend/
   src/routes/             Express route definitions
   src/schemas/            Zod request schemas
   src/services/           Domain services, including mail delivery
+  src/utils/              Shared backend helpers, including product pricing
+  tests/                  Jest unit tests for services and pricing helpers
 
 frontend/
   app/                    Next.js App Router pages
@@ -68,6 +71,11 @@ SMTP_SECURE="false"
 SMTP_USER="support@example.com"
 SMTP_PASS="smtp-password"
 CONTACT_TO_EMAIL="support@example.com"
+
+CLOUDINARY_CLOUD_NAME="cloud-name"
+CLOUDINARY_API_KEY="api-key"
+CLOUDINARY_API_SECRET="api-secret"
+CLOUDINARY_PRODUCTS_FOLDER="buyly/products"
 ```
 
 Frontend variables:
@@ -82,6 +90,7 @@ Notes:
 - `JWT_SECRET` is required by backend auth configuration.
 - `SMTP_*` and `CONTACT_TO_EMAIL` are required for the contact form email flow.
 - `SMTP_SECURE` should usually be `false` for port `587` and `true` for port `465`.
+- `CLOUDINARY_*` variables are required for admin product image uploads through `POST /api/uploads/product-image`.
 
 ## Development
 
@@ -115,7 +124,9 @@ Main backend routes:
 - `/api/categories` - category routes.
 - `/api/products` - product routes.
 - `/api/cart` - authenticated cart routes.
+- `/api/favorites` - authenticated favorite product routes.
 - `/api/orders` - authenticated order routes.
+- `POST /api/uploads/product-image` - admin-only Cloudinary product image upload.
 
 Example contact request:
 
@@ -138,13 +149,31 @@ The frontend collects the delivery address in separate fields and combines them 
 
 ## Verification
 
-There is no active automated test setup yet. Use the available build and lint commands for touched apps.
+Use the available test, build, and lint commands for touched apps.
 
 Backend:
 
 ```bash
 cd backend
+npm test
+npx tsc --noEmit
+npx tsc --noEmit --project tsconfig.test.json
 npm run build
+```
+
+Backend tests use Jest with TypeScript/ESM support and mock Prisma for unit-level service coverage. Current test coverage focuses on high-risk domain logic:
+
+- product promotion pricing in `src/utils/product-pricing.ts`
+- single product lookup behavior in `src/services/product.service.ts`
+- cart stock validation and item updates in `src/services/cart.service.ts`
+- favorite product add/remove behavior in `src/services/favorite.service.ts`
+- order creation totals, promo pricing, stock restoration, and fulfilled-order protections in `src/services/orders.service.ts`
+
+Run a single backend test file with:
+
+```bash
+cd backend
+npm test -- tests/orders.service.test.ts
 ```
 
 Frontend:
