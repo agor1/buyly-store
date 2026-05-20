@@ -11,16 +11,11 @@ import {
 import { BadRequestError } from "../errors/app-error.js";
 import { AuthRequest } from "../types/authRequest.js";
 import { requireUserId } from "../utils/auth.utils.js";
+import type { GetOrdersQuery } from "../schemas/order.schema.js";
 
-export const getAllOrders = async (req: Request, res: Response) => {
-  const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
-  const search = typeof req.query.search === "string" ? req.query.search : "";
-  const orders = await getOrders({
-    page,
-    limit,
-    search: search.trim() || undefined,
-  });
+export const getAllOrders = async (_req: Request, res: Response) => {
+  const query = res.locals.query as GetOrdersQuery;
+  const orders = await getOrders(query);
 
   res.status(200).json(orders);
 };

@@ -8,6 +8,8 @@ import {
 import Footer from "@/components/layout/footer";
 import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
+import { API_URL } from "@/lib/api/config";
+import { formatPrice } from "@/lib/product-utils";
 import Link from "next/link";
 
 interface HomeProduct {
@@ -73,9 +75,7 @@ const benefits = [
 
 const getRandomProducts = async () => {
   try {
-    const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-    const response = await fetch(`${apiUrl}/products?limit=50`, {
+    const response = await fetch(`${API_URL}/products?limit=50`, {
       cache: "no-store",
     });
 
@@ -237,10 +237,7 @@ export default async function Home() {
                       {product.name}
                     </h3>
                     <p className="font-mono text-price font-bold text-cyan">
-                      {Number(product.price).toLocaleString("pl-PL", {
-                        currency: "PLN",
-                        style: "currency",
-                      })}
+                      {formatPrice(product.price)}
                     </p>
                   </div>
                 </article>

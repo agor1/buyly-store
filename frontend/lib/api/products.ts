@@ -119,14 +119,3 @@ export const uploadProductImage = async (file: File): Promise<string> => {
 export const deleteProduct = async (id: string) => {
   await api.delete(`/products/${id}`);
 };
-
-const productsApi = {
-  createProduct,
-  deleteProduct,
-  getProduct,
-  getProducts,
-  updateProduct,
-  uploadProductImage,
-};
-
-export default productsApi;

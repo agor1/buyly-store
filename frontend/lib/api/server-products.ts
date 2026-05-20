@@ -1,6 +1,5 @@
 import type { Product } from "@/lib/api/products";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+import { API_URL } from "@/lib/api/config";
 
 export async function getProductOnServer(slug: string): Promise<Product> {
   const response = await fetch(`${API_URL}/products/${slug}`, {

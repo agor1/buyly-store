@@ -28,6 +28,19 @@ const handleProductWriteError = (error: unknown): never => {
   throw error;
 };
 
+const buildProductWriteData = (data: ProductData, categoryId: string) => ({
+  name: data.name,
+  slug: data.slug,
+  description: data.description || "",
+  image_url: data.imageUrl || null,
+  price: data.price || 0,
+  promo_price: data.promoPrice ?? null,
+  promo_starts_at: data.promoStartsAt ? new Date(data.promoStartsAt) : null,
+  promo_ends_at: data.promoEndsAt ? new Date(data.promoEndsAt) : null,
+  stock: data.stock || 0,
+  category_id: categoryId,
+});
+
 export const getProduct = async (slug: string) => {
   const product = await prisma.product.findUnique({
     where: { slug },
@@ -114,34 +127,11 @@ export const getProducts = async ({
 };
 
 export const addProduct = async (data: ProductData) => {
-  const {
-    name,
-    slug,
-    description,
-    imageUrl,
-    price,
-    stock,
-    categoryId,
-    promoPrice,
-    promoStartsAt,
-    promoEndsAt,
-  } = data;
-  const category = await ensureCategoryExists(categoryId);
+  const category = await ensureCategoryExists(data.categoryId);
 
   try {
     return await prisma.product.create({
-      data: {
-        name,
-        slug,
-        description: description || "",
-        image_url: imageUrl || null,
-        price: price || 0,
-        promo_price: promoPrice ?? null,
-        promo_starts_at: promoStartsAt ? new Date(promoStartsAt) : null,
-        promo_ends_at: promoEndsAt ? new Date(promoEndsAt) : null,
-        stock: stock || 0,
-        category_id: category.id,
-      },
+      data: buildProductWriteData(data, category.id),
       include: {
         category: true,
       },
@@ -152,41 +142,17 @@ export const addProduct = async (data: ProductData) => {
 };
 
 export const updateProduct = async (id: string, data: ProductData) => {
-  const {
-    name,
-    slug,
-    description,
-    imageUrl,
-    price,
-    stock,
-    categoryId,
-    promoPrice,
-    promoStartsAt,
-    promoEndsAt,
-  } = data;
-
   const product = await prisma.product.findUnique({ where: { id } });
   if (!product) {
     throw new NotFoundError("Product not found");
   }
 
-  const category = await ensureCategoryExists(categoryId);
+  const category = await ensureCategoryExists(data.categoryId);
 
   try {
     return await prisma.product.update({
       where: { id },
-      data: {
-        name,
-        slug,
-        description: description || "",
-        image_url: imageUrl || null,
-        price: price || 0,
-        promo_price: promoPrice ?? null,
-        promo_starts_at: promoStartsAt ? new Date(promoStartsAt) : null,
-        promo_ends_at: promoEndsAt ? new Date(promoEndsAt) : null,
-        stock: stock || 0,
-        category_id: category.id,
-      },
+      data: buildProductWriteData(data, category.id),
       include: {
         category: true,
       },

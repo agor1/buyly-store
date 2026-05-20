@@ -4,8 +4,8 @@ import {
   login,
   logout,
   updateUserRole,
-  getCurrrentUser,
-  updateCurrrentUser,
+  getCurrentUser,
+  updateCurrentUserProfile,
 } from "../controllers/auth.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { roleMiddleware } from "../middleware/role.middleware.js";
@@ -21,12 +21,12 @@ const router: Router = Router();
 router.post("/register", validateRequest(registerSchema), register);
 router.post("/login", validateRequest(loginSchema), login);
 router.post("/logout", logout);
-router.get("/me", authMiddleware, getCurrrentUser);
+router.get("/me", authMiddleware, getCurrentUser);
 router.patch(
   "/me",
   authMiddleware,
   validateRequest(updateCurrentUserSchema),
-  updateCurrrentUser,
+  updateCurrentUserProfile,
 );
 router.post(
   "/change-role",

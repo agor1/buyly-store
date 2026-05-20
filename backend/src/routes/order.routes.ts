@@ -10,15 +10,25 @@ import {
 } from "../controllers/order.controller.js";
 import { roleMiddleware } from "../middleware/role.middleware.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
-import { validateRequest } from "../middleware/validation.middleware.js";
+import {
+  validateQuery,
+  validateRequest,
+} from "../middleware/validation.middleware.js";
 import {
   createOrderSchema,
+  getOrdersQuerySchema,
   updateOrderStatusSchema,
 } from "../schemas/order.schema.js";
 
 const router: Router = Router();
 
-router.get("/", authMiddleware, roleMiddleware(["ADMIN"]), getAllOrders);
+router.get(
+  "/",
+  authMiddleware,
+  roleMiddleware(["ADMIN"]),
+  validateQuery(getOrdersQuerySchema),
+  getAllOrders,
+);
 router.post(
   "/",
   authMiddleware,

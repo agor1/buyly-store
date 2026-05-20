@@ -1,5 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodSchema } from "zod";
+import { ZodError, ZodSchema } from "zod";
+
+const formatZodErrors = (error: ZodError) =>
+  error.issues.map((issue) => ({
+    field: issue.path.join("."),
+    message: issue.message,
+  }));
 
 export const validateRequest = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -8,16 +14,11 @@ export const validateRequest = (schema: ZodSchema) => {
       req.body = validatedData;
 
       next();
-    } catch (error: any) {
-      if (error.issues) {
-        const formattedErrors = error.issues.map((issue: any) => ({
-          field: issue.path.join("."),
-          message: issue.message,
-        }));
-
+    } catch (error) {
+      if (error instanceof ZodError) {
         return res.status(400).json({
           error: "Podaj poprawne dane",
-          details: formattedErrors,
+          details: formatZodErrors(error),
         });
       }
 
@@ -33,16 +34,11 @@ export const validateQuery = (schema: ZodSchema) => {
       res.locals.query = validatedData;
 
       next();
-    } catch (error: any) {
-      if (error.issues) {
-        const formattedErrors = error.issues.map((issue: any) => ({
-          field: issue.path.join("."),
-          message: issue.message,
-        }));
-
+    } catch (error) {
+      if (error instanceof ZodError) {
         return res.status(400).json({
           error: "Podaj poprawne parametry zapytania",
-          details: formattedErrors,
+          details: formatZodErrors(error),
         });
       }
 

@@ -7,10 +7,7 @@ export interface Category {
 }
 
 export const getCategories = async () => {
-  try {
-    const response = await api.get<Category[]>("/categories");
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.get<Category[]>("/categories");
+
+  return response.data;
 };

@@ -39,7 +39,7 @@ export const login = async (req: Request, res: Response) => {
   });
 };
 
-export const getCurrrentUser = async (req: AuthRequest, res: Response) => {
+export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   const userId = requireUserId(req);
   const user = await getMe(userId);
 
@@ -53,7 +53,10 @@ export const getCurrrentUser = async (req: AuthRequest, res: Response) => {
   });
 };
 
-export const updateCurrrentUser = async (req: AuthRequest, res: Response) => {
+export const updateCurrentUserProfile = async (
+  req: AuthRequest,
+  res: Response,
+) => {
   const userId = requireUserId(req);
   const user = await updateCurrentUser(userId, req.body);
 

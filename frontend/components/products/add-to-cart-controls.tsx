@@ -5,7 +5,6 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/lib/api/products";
-import { usePromotionClock } from "@/lib/hooks/use-promotion-clock";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useFavoritesStore } from "@/lib/store/favorites-store";
@@ -17,7 +16,6 @@ interface AddToCartControlsProps {
 export default function AddToCartControls({
   product,
 }: AddToCartControlsProps) {
-  usePromotionClock();
   const [quantity, setQuantity] = useState(1);
   const { hasHydrated, user } = useAuthStore();
   const addItem = useCartStore((state) => state.addItem);

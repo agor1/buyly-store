@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const optionalTrimmedString = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value) => value || undefined);
+
 export const createOrderSchema = z.object({
   shippingAddress: z.string().min(1, "Shipping address is required"),
   shippingType: z.enum(["courier", "parcel_locker", "pickup"]),
@@ -18,5 +24,12 @@ export const updateOrderStatusSchema = z.object({
   status: z.enum(["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"]),
 });
 
+export const getOrdersQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+  search: optionalTrimmedString,
+});
+
 export type OrderData = z.infer<typeof createOrderSchema>;
 export type UpdateOrderStatusData = z.infer<typeof updateOrderStatusSchema>;
+export type GetOrdersQuery = z.infer<typeof getOrdersQuerySchema>;

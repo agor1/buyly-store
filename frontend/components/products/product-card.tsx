@@ -11,7 +11,6 @@ import {
   getEffectiveProductPrice,
   isPromotionActive,
 } from "@/lib/product-utils";
-import { usePromotionClock } from "@/lib/hooks/use-promotion-clock";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useFavoritesStore } from "@/lib/store/favorites-store";
@@ -21,7 +20,6 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  usePromotionClock();
   const category = product.category?.name ?? "Produkt";
   const hasPromotion = isPromotionActive(product);
   const effectivePrice = getEffectiveProductPrice(product);
