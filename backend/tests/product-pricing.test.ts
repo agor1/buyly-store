@@ -1,4 +1,5 @@
 import { Prisma } from "../src/generated/prisma/client.js";
+import { describe, expect, it } from "@jest/globals";
 import {
   getEffectiveProductPrice,
   isPromotionActive,
