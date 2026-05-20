@@ -9,6 +9,20 @@ Buyly Store is a TypeScript e-commerce project split into two applications:
 
 The frontend talks to the backend through `/api` endpoints and stores authentication state client-side while the backend uses cookies for authenticated flows.
 
+## Demo
+
+Add a short walkthrough GIF or MP4 here when publishing the repository. A good demo path is:
+
+```text
+docs/demo.gif
+```
+
+Then reference it with:
+
+```md
+![Buyly Store demo](docs/demo.gif)
+```
+
 ## Features
 
 - Guest storefront with product browsing, search, contact form, login, and registration pages.
@@ -55,6 +69,13 @@ npm install
 ## Configuration
 
 Create local environment files as needed. Do not commit `.env` files.
+
+Example files are provided for local setup:
+
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env.local
+```
 
 Backend variables:
 
