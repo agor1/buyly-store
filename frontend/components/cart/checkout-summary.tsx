@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import {
   paymentOptions,
   type PaymentType,
-  shippingOptions,
+  type ShippingOption,
   type ShippingType,
 } from "@/lib/checkout-options";
 import { formatPrice } from "@/lib/product-utils";
@@ -19,8 +19,9 @@ interface CheckoutSummaryProps {
   shippingHouseNumber: string;
   shippingPostalCode: string;
   shippingPrice: number;
+  shippingOptions: ShippingOption[];
   shippingStreet: string;
-  shippingType: ShippingType;
+  shippingType: ShippingType | "";
   totalItems: number;
   onCreateOrder: () => void;
   onPaymentTypeChange: (paymentType: PaymentType) => void;
@@ -40,6 +41,7 @@ export default function CheckoutSummary({
   shippingHouseNumber,
   shippingPostalCode,
   shippingPrice,
+  shippingOptions,
   shippingStreet,
   shippingType,
   totalItems,
@@ -186,7 +188,7 @@ function OptionGroup<T extends string>({
   disabled: boolean;
   label: string;
   options: readonly { value: T; label: string; price?: number }[];
-  selectedValue: T;
+  selectedValue: T | "";
   onChange: (value: T) => void;
 }) {
   return (

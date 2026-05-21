@@ -9,6 +9,7 @@ import ordersRoutes from "./src/routes/order.routes.js";
 import cartRoutes from "./src/routes/cart.routes.js";
 import favoriteRoutes from "./src/routes/favorite.routes.js";
 import contactRoutes from "./src/routes/contact.routes.js";
+import checkoutRoutes from "./src/routes/checkout.routes.js";
 import uploadRoutes from "./src/routes/upload.routes.js";
 import { authMiddleware } from "./src/middleware/auth.middleware.js";
 import cookieParser from "cookie-parser";
@@ -48,6 +49,7 @@ app.use("/api/favorites", authMiddleware, favoriteRoutes);
 app.use("/api/orders", authMiddleware, ordersRoutes);
 app.use("/api/uploads", authMiddleware, uploadRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/checkout", checkoutRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

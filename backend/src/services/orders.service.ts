@@ -3,6 +3,7 @@ import { Prisma } from "../generated/prisma/client.js";
 import { OrderData, OrderStatus } from "../types/order.types.js";
 import { BadRequestError, NotFoundError } from "../errors/app-error.js";
 import { getEffectiveProductPrice } from "../utils/product-pricing.js";
+import { getShippingOption } from "../constants/checkout-options.js";
 
 interface GetOrdersOptions {
   page: number;
@@ -14,12 +15,6 @@ type OrderItemStockData = {
   product_id: string;
   quantity: number;
 };
-
-const shippingPrices = {
-  courier: new Prisma.Decimal(14.99),
-  parcel_locker: new Prisma.Decimal(11.99),
-  pickup: new Prisma.Decimal(0),
-} as const;
 
 const restockableStatuses: readonly string[] = [
   OrderStatus.PENDING,
@@ -201,7 +196,13 @@ export const createOrder = async ({
 
       return sum.add(getEffectiveProductPrice(product).mul(item.quantity));
     }, new Prisma.Decimal(0));
-    const totalPrice = productsTotalPrice.add(shippingPrices[shippingType]);
+    const shippingOption = getShippingOption(shippingType);
+
+    if (!shippingOption) {
+      throw new BadRequestError("Nieprawidłowy sposób dostawy.");
+    }
+
+    const totalPrice = productsTotalPrice.add(shippingOption.price);
 
     for (const item of items) {
       const updatedProduct = await tx.product.updateMany({

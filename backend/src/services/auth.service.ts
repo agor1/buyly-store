@@ -31,7 +31,7 @@ export const registerUser = async (data: RegisterData) => {
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    throw new BadRequestError("Email already in use");
+    throw new BadRequestError("Nie udało się utworzyć konta z podanymi danymi.");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);

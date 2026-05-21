@@ -1,4 +1,6 @@
-export type ShippingType = "courier" | "parcel_locker" | "pickup";
+import type { ShippingType } from "../constants/checkout-options.js";
+
+export type { ShippingType };
 
 export interface OrderData {
   userId: string;

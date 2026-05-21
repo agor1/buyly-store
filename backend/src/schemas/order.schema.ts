@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SHIPPING_TYPE_VALUES } from "../constants/checkout-options.js";
 
 const optionalTrimmedString = z
   .string()
@@ -8,7 +9,7 @@ const optionalTrimmedString = z
 
 export const createOrderSchema = z.object({
   shippingAddress: z.string().min(1, "Shipping address is required"),
-  shippingType: z.enum(["courier", "parcel_locker", "pickup"]),
+  shippingType: z.enum(SHIPPING_TYPE_VALUES),
   paymentType: z.enum(["card", "blik", "cash_on_delivery"]),
   items: z
     .array(

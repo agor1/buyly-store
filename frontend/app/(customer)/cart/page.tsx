@@ -2,7 +2,7 @@
 
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Trash } from "@phosphor-icons/react";
 
@@ -13,10 +13,11 @@ import { Reveal, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { createOrder } from "@/lib/api/orders";
+import { getCheckoutOptions } from "@/lib/api/checkout";
 import {
   paymentOptions,
   type PaymentType,
-  shippingOptions,
+  type ShippingOption,
   type ShippingType,
 } from "@/lib/checkout-options";
 import { checkoutFormSchema, getFirstZodError } from "@/lib/schemas/forms";
@@ -37,13 +38,46 @@ export default function CartPage() {
   const [shippingPostalCode, setShippingPostalCode] = useState("");
   const [shippingStreet, setShippingStreet] = useState("");
   const [shippingHouseNumber, setShippingHouseNumber] = useState("");
-  const [shippingType, setShippingType] = useState<ShippingType>(
-    shippingOptions[0].value,
-  );
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+  const [shippingType, setShippingType] = useState<ShippingType | "">("");
   const [paymentType, setPaymentType] = useState<PaymentType>(
     paymentOptions[0].value,
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckoutOptionsLoading, setIsCheckoutOptionsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCheckoutOptions = async () => {
+      try {
+        const checkoutOptions = await getCheckoutOptions();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setShippingOptions(checkoutOptions.shippingOptions);
+        setShippingType((currentShippingType) =>
+          currentShippingType || checkoutOptions.shippingOptions[0]?.value || "",
+        );
+      } catch {
+        if (isMounted) {
+          toast.error("Nie udało się pobrać opcji dostawy.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsCheckoutOptionsLoading(false);
+        }
+      }
+    };
+
+    loadCheckoutOptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const totalItems = items.reduce((total, item) => total + item.quantity, 0);
   const productsTotal = items.reduce(
@@ -58,11 +92,17 @@ export default function CartPage() {
   );
   const shippingPrice = selectedShipping?.price ?? 0;
   const orderTotal = productsTotal + shippingPrice;
-  const isCheckoutDisabled = items.length === 0 || isSubmitting;
+  const isCheckoutDisabled =
+    items.length === 0 || isSubmitting || isCheckoutOptionsLoading || !shippingType;
 
   const handleCreateOrder = async () => {
     if (items.length === 0) {
       toast.error("Koszyk jest pusty.");
+      return;
+    }
+
+    if (!shippingType) {
+      toast.error("Wybierz sposób dostawy.");
       return;
     }
 
@@ -172,6 +212,7 @@ export default function CartPage() {
                 paymentType={paymentType}
                 shippingCity={shippingCity}
                 shippingHouseNumber={shippingHouseNumber}
+                shippingOptions={shippingOptions}
                 shippingPostalCode={shippingPostalCode}
                 shippingPrice={shippingPrice}
                 shippingStreet={shippingStreet}
@@ -183,7 +224,7 @@ export default function CartPage() {
                 onShippingHouseNumberChange={setShippingHouseNumber}
                 onShippingPostalCodeChange={setShippingPostalCode}
                 onShippingStreetChange={setShippingStreet}
-                onShippingTypeChange={setShippingType}
+                onShippingTypeChange={(value) => setShippingType(value)}
               />
             </StaggerItem>
           </Stagger>

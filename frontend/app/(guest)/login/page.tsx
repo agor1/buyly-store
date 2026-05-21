@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, ShieldCheck } from "@phosphor-icons/react/dist/ssr";
+import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,8 +35,17 @@ export default function LoginPage() {
       await login(result.data);
       toast.success("Zalogowano pomyślnie.");
       router.push("/");
-    } catch {
-      toast.error("Logowanie nie powiodło się");
+    } catch (error) {
+      const isTooManyRequests =
+        axios.isAxiosError(error) && error.response?.status === 429;
+      const message =
+        axios.isAxiosError(error) && typeof error.response?.data?.error === "string"
+          ? error.response.data.error
+          : isTooManyRequests
+            ? "Za dużo prób logowania. Spróbuj ponownie za kilka minut."
+            : "Logowanie nie powiodło się";
+
+      toast.error(message);
     }
   };
 
