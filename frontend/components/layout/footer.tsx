@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -21,9 +22,9 @@ export default function Footer() {
           </p>
         </div>
         <div className="flex flex-wrap gap-4 text-caption uppercase tracking-[0.12em] text-muted-foreground">
-          <span>Instagram</span>
-          <span>Terms</span>
-          <span>Privacy</span>
+          <Link href="/instagram">Instagram</Link>
+          <Link href="/terms">Terms</Link>
+          <Link href="/privacy">Privacy</Link>
         </div>
       </div>
     </motion.footer>
