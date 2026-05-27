@@ -9,6 +9,8 @@ Buyly Store is a TypeScript e-commerce project split into two applications:
 
 The frontend talks to the backend through `/api` endpoints and stores authentication state client-side while the backend uses cookies for authenticated flows.
 
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white) ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=white) ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+
 ## Features
 
 - Guest storefront with product browsing, search, contact form, login, and registration pages.
