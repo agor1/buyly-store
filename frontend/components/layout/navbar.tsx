@@ -169,7 +169,7 @@ export default function Navbar() {
               <div className="mx-4 mt-4 border border-border bg-base">
                 <div className="flex items-center gap-3 border-b border-border p-4">
                   <Avatar>
-                    <AvatarImage />
+                    <AvatarImage src={user?.avatar_url ?? undefined} alt="" />
                     <AvatarFallback>
                       {user?.name ? user.name[0] : "U"}
                     </AvatarFallback>
@@ -340,7 +340,7 @@ export default function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="hover:cursor-pointer">
-                  <AvatarImage />
+                  <AvatarImage src={user?.avatar_url ?? undefined} alt="" />
                   <AvatarFallback>
                     {user?.name ? user.name[0] : "U"}
                   </AvatarFallback>

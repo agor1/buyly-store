@@ -3,13 +3,14 @@
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   EnvelopeSimple,
   IdentificationCard,
   Key,
   ShieldCheck,
+  UploadSimple,
   User,
 } from "@phosphor-icons/react";
 
@@ -28,7 +29,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { logout, updateCurrentUser } from "@/lib/api/auth";
+import {
+  logout,
+  updateCurrentUser,
+  uploadCurrentUserAvatar,
+} from "@/lib/api/auth";
 import {
   getFirstZodError,
   passwordFormSchema,
@@ -39,10 +44,12 @@ import { useAuthStore } from "@/lib/store/auth-store";
 export default function ProfilePage() {
   const router = useRouter();
   const { clearSession, setSession, user } = useAuthStore();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [repeatNewPassword, setRepeatNewPassword] = useState("");
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [isPasswordSaving, setIsPasswordSaving] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
@@ -71,6 +78,31 @@ export default function ProfilePage() {
 
   const saveUser = (updatedUser: NonNullable<typeof user>) => {
     setSession({ user: updatedUser });
+  };
+
+  const handleAvatarChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    setIsAvatarUploading(true);
+
+    try {
+      const updatedUser = await uploadCurrentUserAvatar(file);
+      saveUser(updatedUser);
+      toast.success("Avatar został zapisany.");
+    } catch (error) {
+      toast.error(
+        getErrorMessage(error, "Nie udało się przesłać zdjęcia avataru"),
+      );
+    } finally {
+      setIsAvatarUploading(false);
+      event.target.value = "";
+    }
   };
 
   const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -199,7 +231,7 @@ export default function ProfilePage() {
         <aside className="border-hairline border-border bg-surface p-4 shadow-cyan">
           <div className="flex items-center gap-3">
             <Avatar className="size-12">
-              <AvatarImage />
+              <AvatarImage src={user?.avatar_url ?? undefined} alt="" />
               <AvatarFallback>{initials.toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
@@ -329,6 +361,45 @@ export default function ProfilePage() {
             </StaggerItem>
 
             <StaggerItem className="grid gap-6">
+              <section className="border-hairline border-border bg-surface p-5 shadow-cyan">
+                <div className="mb-5 flex items-center gap-2 text-text-bright">
+                  <UploadSimple className="text-cyan" size={22} />
+                  <h2 className="font-display text-xl font-bold">
+                    Avatar
+                  </h2>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Avatar className="size-16">
+                    <AvatarImage src={user?.avatar_url ?? undefined} alt="" />
+                    <AvatarFallback>{initials.toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <input
+                      ref={avatarInputRef}
+                      id="profile-avatar"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={handleAvatarChange}
+                      disabled={isAvatarUploading}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                      disabled={isAvatarUploading}
+                      onClick={() => avatarInputRef.current?.click()}
+                    >
+                      {isAvatarUploading ? "Przesyłanie..." : "Prześlij zdjęcie"}
+                      <UploadSimple />
+                    </Button>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      JPG, PNG lub WEBP, maksymalnie 5 MB.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
               <section className="border-hairline border-border bg-surface p-5 shadow-cyan">
                 <div className="mb-5 flex items-center gap-2 text-text-bright">
                   <ShieldCheck className="text-cyan" size={22} />

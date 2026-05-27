@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgres"
-  url      = env("DATABASE_URL")
 }
 
 // Enums
@@ -33,6 +32,7 @@ model User {
   email     String   @unique
   password_hash String 
   name      String  
+  avatar_url String?
   role      UserRole @default(CUSTOMER)
   created_at DateTime @default(now())
 

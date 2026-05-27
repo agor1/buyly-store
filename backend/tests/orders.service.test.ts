@@ -12,6 +12,7 @@ const orderFindUniqueMock = mockFn();
 const orderUpdateMock = mockFn();
 const orderDeleteMock = mockFn();
 const cartDeleteManyMock = mockFn();
+const sendOrderConfirmationEmailMock = mockFn();
 
 const tx = {
   product: {
@@ -36,6 +37,10 @@ jest.unstable_mockModule("../src/lib/prisma.js", () => ({
   },
 }));
 
+jest.unstable_mockModule("../src/services/mail.service.js", () => ({
+  sendOrderConfirmationEmail: sendOrderConfirmationEmailMock,
+}));
+
 const { createOrder, deleteOrder, updateOrderStatus } = await import(
   "../src/services/orders.service.js"
 );
@@ -51,6 +56,7 @@ describe("orders.service", () => {
     orderUpdateMock.mockReset();
     orderDeleteMock.mockReset();
     cartDeleteManyMock.mockReset();
+    sendOrderConfirmationEmailMock.mockReset();
     transactionMock.mockImplementation(async (callback) => callback(tx));
   });
 
@@ -69,8 +75,24 @@ describe("orders.service", () => {
     orderCreateMock.mockImplementation(async ({ data }) => ({
       id: "order-1",
       ...data,
+      user: {
+        email: "customer@example.com",
+        name: "Test Customer",
+      },
+      order_items: [
+        {
+          product_id: "product-1",
+          quantity: 2,
+          unit_price: new Prisma.Decimal("80"),
+          product: {
+            id: "product-1",
+            name: "Test product",
+          },
+        },
+      ],
     }));
     cartDeleteManyMock.mockResolvedValue({ count: 1 });
+    sendOrderConfirmationEmailMock.mockResolvedValue(undefined);
 
     const order = await createOrder({
       userId: "user-1",
@@ -94,6 +116,13 @@ describe("orders.service", () => {
             ],
           },
         }),
+      }),
+    );
+    expect(sendOrderConfirmationEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "customer@example.com",
+        orderId: "order-1",
+        totalPrice: "174.99",
       }),
     );
   });
@@ -121,6 +150,7 @@ describe("orders.service", () => {
       }),
     ).rejects.toThrow("Brak wystarczającej ilości produktu w magazynie.");
     expect(orderCreateMock).not.toHaveBeenCalled();
+    expect(sendOrderConfirmationEmailMock).not.toHaveBeenCalled();
   });
 
   it("restores stock when cancelling pending order", async () => {

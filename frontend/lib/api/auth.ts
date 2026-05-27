@@ -4,6 +4,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
+  avatar_url?: string | null;
   role?: string;
 }
 
@@ -62,6 +63,18 @@ export const updateCurrentUser = async (
   payload: UpdateCurrentUserPayload,
 ): Promise<User> => {
   const response = await api.patch<CurrentUserResponse>("/auth/me", payload);
+
+  return response.data.user;
+};
+
+export const uploadCurrentUserAvatar = async (file: File): Promise<User> => {
+  const formData = new FormData();
+  formData.append("avatar", file);
+
+  const response = await api.post<CurrentUserResponse>(
+    "/uploads/avatar",
+    formData,
+  );
 
   return response.data.user;
 };

@@ -25,6 +25,15 @@ interface UpdateCurrentUserData {
   newPassword?: string;
 }
 
+const currentUserSelect = {
+  id: true,
+  email: true,
+  name: true,
+  avatar_url: true,
+  role: true,
+  created_at: true,
+} as const;
+
 // Register service
 export const registerUser = async (data: RegisterData) => {
   const { email, password, name } = data;
@@ -85,13 +94,7 @@ export const loginUser = async (data: LoginData) => {
 export const getMe = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      created_at: true,
-    },
+    select: currentUserSelect,
   });
   if (!user) {
     throw new NotFoundError("User not found");
@@ -131,13 +134,23 @@ export const updateCurrentUser = async (
   return prisma.user.update({
     where: { id: userId },
     data: updateData,
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      created_at: true,
-    },
+    select: currentUserSelect,
+  });
+};
+
+export const updateCurrentUserAvatar = async (
+  userId: string,
+  avatarUrl: string,
+) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: { avatar_url: avatarUrl },
+    select: currentUserSelect,
   });
 };
 

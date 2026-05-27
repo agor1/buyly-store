@@ -10,6 +10,20 @@ import { BadRequestError } from "../errors/app-error.js";
 import { AuthRequest } from "../types/authRequest.js";
 import { requireUserId } from "../utils/auth.utils.js";
 
+const toAuthUser = (user: {
+  id: string;
+  email: string;
+  name: string;
+  avatar_url?: string | null;
+  role: string;
+}) => ({
+  id: user.id,
+  email: user.email,
+  name: user.name,
+  avatar_url: user.avatar_url,
+  role: user.role,
+});
+
 const setAuthCookie = (res: Response, token: string) => {
   res.cookie("token", token, {
     httpOnly: true,
@@ -25,7 +39,7 @@ export const register = async (req: Request, res: Response) => {
 
   setAuthCookie(res, token);
   res.json({
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    user: toAuthUser(user),
   });
 };
 
@@ -35,7 +49,7 @@ export const login = async (req: Request, res: Response) => {
 
   setAuthCookie(res, token);
   res.json({
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    user: toAuthUser(user),
   });
 };
 
@@ -44,12 +58,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   const user = await getMe(userId);
 
   res.json({
-    user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    },
+    user: toAuthUser(user),
   });
 };
 

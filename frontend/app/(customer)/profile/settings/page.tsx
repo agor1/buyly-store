@@ -22,7 +22,7 @@ export default function ProfileSettingsPage() {
         <aside className="border-hairline border-border bg-surface p-4 shadow-cyan">
           <div className="flex items-center gap-3">
             <Avatar className="size-12">
-              <AvatarImage />
+              <AvatarImage src={user?.avatar_url ?? undefined} alt="" />
               <AvatarFallback>{initials.toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">

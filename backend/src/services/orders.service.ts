@@ -4,6 +4,7 @@ import { OrderData, OrderStatus } from "../types/order.types.js";
 import { BadRequestError, NotFoundError } from "../errors/app-error.js";
 import { getEffectiveProductPrice } from "../utils/product-pricing.js";
 import { getShippingOption } from "../constants/checkout-options.js";
+import { sendOrderConfirmationEmail } from "./mail.service.js";
 
 interface GetOrdersOptions {
   page: number;
@@ -29,6 +30,12 @@ const canRestoreOrderStock = (status: string) =>
   restockableStatuses.includes(status);
 
 const isFulfilledOrder = (status: string) => fulfilledStatuses.includes(status);
+
+const paymentLabels: Record<string, string> = {
+  blik: "BLIK",
+  card: "Karta platnicza",
+  cash_on_delivery: "Platnosc przy odbiorze",
+};
 
 const restoreOrderItemsStock = async (
   tx: Prisma.TransactionClient,
@@ -164,7 +171,7 @@ export const createOrder = async ({
   paymentType,
   items,
 }: OrderData) => {
-  return await prisma.$transaction(async (tx) => {
+  const order = await prisma.$transaction(async (tx) => {
     const productIds = [...new Set(items.map((item) => item.productId))];
     const products = await tx.product.findMany({
       where: {
@@ -250,6 +257,12 @@ export const createOrder = async ({
         },
       },
       include: {
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
         order_items: {
           include: {
             product: true,
@@ -269,6 +282,29 @@ export const createOrder = async ({
 
     return order;
   });
+
+  try {
+    const shippingOption = getShippingOption(shippingType);
+
+    await sendOrderConfirmationEmail({
+      email: order.user.email,
+      customerName: order.user.name,
+      orderId: order.id,
+      shippingAddress: order.shipping_address,
+      shippingLabel: shippingOption?.label ?? order.shipping_type,
+      paymentLabel: paymentLabels[order.payment_type] ?? order.payment_type,
+      items: order.order_items.map((item) => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        unitPrice: item.unit_price.toString(),
+      })),
+      totalPrice: order.total_price.toString(),
+    });
+  } catch (error) {
+    console.error("Failed to send order confirmation email", error);
+  }
+
+  return order;
 };
 
 // UPDATE order status
