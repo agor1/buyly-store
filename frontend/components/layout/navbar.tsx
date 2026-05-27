@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import Link from "next/link";
 
@@ -59,7 +59,10 @@ export default function Navbar() {
   const { hasHydrated, user } = useAuthStore();
   const { logout, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const isAuthenticated = !!user;
+  const isLoginPage = pathname === "/login";
+  const isRegisterPage = pathname === "/register";
   const setCartOwner = useCartStore((state) => state.setCartOwner);
   const loadCart = useCartStore((state) => state.loadCart);
   const setFavoritesOwner = useFavoritesStore(
@@ -252,26 +255,30 @@ export default function Navbar() {
                 </DrawerClose>
               ) : (
                 <>
-                  <DrawerClose asChild>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
-                    >
-                      <Link href="/login">
-                        Logowanie
-                        <SignIn />
-                      </Link>
-                    </Button>
-                  </DrawerClose>
-                  <DrawerClose asChild>
-                    <Button asChild className="w-full bg-cyan text-black">
-                      <Link href="/register">
-                        Rejestracja
-                        <UserPlus />
-                      </Link>
-                    </Button>
-                  </DrawerClose>
+                  {!isLoginPage ? (
+                    <DrawerClose asChild>
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full border-border bg-base text-text-bright hover:bg-elevated hover:text-cyan"
+                      >
+                        <Link href="/login">
+                          Logowanie
+                          <SignIn />
+                        </Link>
+                      </Button>
+                    </DrawerClose>
+                  ) : null}
+                  {!isRegisterPage ? (
+                    <DrawerClose asChild>
+                      <Button asChild className="w-full bg-cyan text-black">
+                        <Link href="/register">
+                          Rejestracja
+                          <UserPlus />
+                        </Link>
+                      </Button>
+                    </DrawerClose>
+                  ) : null}
                 </>
               )}
               <DrawerClose asChild>
@@ -388,22 +395,26 @@ export default function Navbar() {
           </div>
         ) : (
           <div className="ml-2 flex items-center gap-2">
-            <Button
-              asChild
-              variant="outline"
-              className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
-            >
-              <Link href="/login">
-                Logowanie
-                <SignIn />
-              </Link>
-            </Button>
-            <Button asChild className="bg-cyan text-black hover:bg-cyan-dim">
-              <Link href="/register">
-                Rejestracja
-                <UserPlus />
-              </Link>
-            </Button>
+            {!isLoginPage ? (
+              <Button
+                asChild
+                variant="outline"
+                className="border-border bg-surface text-text-bright hover:bg-elevated hover:text-cyan"
+              >
+                <Link href="/login">
+                  Logowanie
+                  <SignIn />
+                </Link>
+              </Button>
+            ) : null}
+            {!isRegisterPage ? (
+              <Button asChild className="bg-cyan text-black hover:bg-cyan-dim">
+                <Link href="/register">
+                  Rejestracja
+                  <UserPlus />
+                </Link>
+              </Button>
+            ) : null}
           </div>
         )}
       </div>

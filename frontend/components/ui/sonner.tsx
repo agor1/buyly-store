@@ -52,15 +52,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast:
-            "cn-toast border-hairline bg-surface font-mono text-caption text-text-bright shadow-cyan before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-cyan",
+            "cn-toast border-hairline bg-surface font-mono text-caption text-text-bright shadow-cyan [--toast-accent:var(--cyan)] [border-left:4px_solid_var(--toast-accent)]",
           title: "font-display text-sm font-bold text-text-bright",
           description: "text-xs text-muted-foreground",
           closeButton:
             "border-border bg-base text-text-bright hover:border-cyan hover:text-cyan",
-          success: "before:bg-green",
-          error: "before:bg-red-400",
-          warning: "before:bg-amber",
-          info: "before:bg-cyan",
+          success: "[--toast-accent:var(--green)]",
+          error: "[--toast-accent:rgb(248_113_113)]",
+          warning: "[--toast-accent:var(--amber)]",
+          info: "[--toast-accent:var(--cyan)]",
         },
       }}
       {...props}
