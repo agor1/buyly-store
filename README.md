@@ -132,7 +132,9 @@ Main backend routes:
 - `/api/auth` - authentication routes.
 - `/api/categories` - category routes.
 - `/api/products` - product routes.
+- `/api/contact` - contact routes.
 - `/api/cart` - authenticated cart routes.
+- `/api/cart` - authenticated checkout routes.
 - `/api/favorites` - authenticated favorite product routes.
 - `/api/orders` - authenticated order routes.
 - `POST /api/uploads/product-image` - admin-only Cloudinary product image upload.
