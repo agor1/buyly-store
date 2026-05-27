@@ -12,6 +12,10 @@ export const loginFormSchema = z.object({
   password: z.string().min(1, "Hasło jest wymagane"),
 });
 
+export const forgotPasswordFormSchema = z.object({
+  email: z.string().trim().min(1, "Email jest wymagany").email("Podaj poprawny email"),
+});
+
 export const registerFormSchema = z
   .object({
     name: z
@@ -39,6 +43,17 @@ export const profileFormSchema = z.object({
 export const passwordFormSchema = z
   .object({
     currentPassword: z.string().min(1, "Obecne hasło jest wymagane"),
+    newPassword: passwordSchema,
+    repeatNewPassword: z.string().min(1, "Powtórz nowe hasło"),
+  })
+  .refine((data) => data.newPassword === data.repeatNewPassword, {
+    message: "Hasła nie są identyczne",
+    path: ["repeatNewPassword"],
+  });
+
+export const resetPasswordFormSchema = z
+  .object({
+    token: z.string().trim().min(1, "Token resetu hasła jest wymagany"),
     newPassword: passwordSchema,
     repeatNewPassword: z.string().min(1, "Powtórz nowe hasło"),
   })

@@ -39,7 +39,8 @@ export default function LoginPage() {
       const isTooManyRequests =
         axios.isAxiosError(error) && error.response?.status === 429;
       const message =
-        axios.isAxiosError(error) && typeof error.response?.data?.error === "string"
+        axios.isAxiosError(error) &&
+        typeof error.response?.data?.error === "string"
           ? error.response.data.error
           : isTooManyRequests
             ? "Za dużo prób logowania. Spróbuj ponownie za kilka minut."
@@ -52,7 +53,10 @@ export default function LoginPage() {
   return (
     <main className="scanlines flex-1 bg-base text-text">
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-6 py-10 md:grid-cols-[0.9fr_1.1fr] lg:px-10">
-        <Reveal className="order-2 hidden border-hairline border-border bg-surface p-4 shadow-cyan md:block" delay={0.08}>
+        <Reveal
+          className="order-2 hidden border-hairline border-border bg-surface p-4 shadow-cyan md:block"
+          delay={0.08}
+        >
           <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
             <span className="font-mono text-label uppercase tracking-[0.14em] text-cyan">
               {"// secure access"}
@@ -165,6 +169,12 @@ export default function LoginPage() {
                 href="/register"
               >
                 Nie masz konta?
+              </Link>
+              <Link
+                className="text-caption uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:text-cyan"
+                href="/forgot-password"
+              >
+                Nie pamiętasz hasła?
               </Link>
             </div>
           </form>

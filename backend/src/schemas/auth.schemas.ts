@@ -26,6 +26,14 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Hasło jest wymagane"),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email("Podaj prawidlowy email")
+    .min(1, "Email jest wymagany"),
+});
+
 const passwordSchema = z
   .string()
   .min(6, "Hasło musi mieć minimum 6 znaków")
@@ -35,6 +43,11 @@ const passwordSchema = z
     /[@$!%*?&]/,
     "Hasło musi zawierać przynajmniej jeden znak specjalny",
   );
+
+export const resetPasswordSchema = z.object({
+  token: z.string().trim().min(1, "Token resetu hasła jest wymagany"),
+  newPassword: passwordSchema,
+});
 
 export const updateCurrentUserSchema = z
   .object({
@@ -52,4 +65,6 @@ export const updateCurrentUserSchema = z
 
 export type RegisterData = z.infer<typeof registerSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
+export type ForgotPasswordData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
 export type UpdateCurrentUserData = z.infer<typeof updateCurrentUserSchema>;

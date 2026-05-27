@@ -2,8 +2,10 @@ import { Router } from "express";
 import { ipKeyGenerator } from "express-rate-limit";
 import {
   register,
+  forgotPassword,
   login,
   logout,
+  resetUserPassword,
   updateUserRole,
   getCurrentUser,
   updateCurrentUserProfile,
@@ -13,7 +15,9 @@ import { createRateLimit } from "../middleware/rate-limit.middleware.js";
 import { roleMiddleware } from "../middleware/role.middleware.js";
 import {
   loginSchema,
+  forgotPasswordSchema,
   registerSchema,
+  resetPasswordSchema,
   updateCurrentUserSchema,
 } from "../schemas/auth.schemas.js";
 import { validateRequest } from "../middleware/validation.middleware.js";
@@ -61,6 +65,33 @@ router.post(
   validateRequest(loginSchema),
   loginEmailRateLimit,
   login,
+);
+router.post(
+  "/forgot-password",
+  createRateLimit({
+    keyPrefix: "auth:forgot-password",
+    limit: 5,
+    windowMs: 60 * 60 * 1000,
+    getKey: (req) =>
+      typeof req.body?.email === "string"
+        ? req.body.email.trim().toLowerCase()
+        : ipKeyGenerator(req.ip ?? "unknown"),
+    message: "Zbyt wiele próśb o reset hasła. Spróbuj ponownie później.",
+  }),
+  validateRequest(forgotPasswordSchema),
+  forgotPassword,
+);
+router.post(
+  "/reset-password",
+  createRateLimit({
+    keyPrefix: "auth:reset-password",
+    limit: 10,
+    windowMs: 60 * 60 * 1000,
+    getKey: (req) => ipKeyGenerator(req.ip ?? "unknown"),
+    message: "Zbyt wiele prób zmiany hasła. Spróbuj ponownie później.",
+  }),
+  validateRequest(resetPasswordSchema),
+  resetUserPassword,
 );
 router.post("/logout", logout);
 router.get("/me", authMiddleware, getCurrentUser);

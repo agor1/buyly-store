@@ -3,6 +3,8 @@ import {
   changeUserRole,
   getMe,
   loginUser,
+  requestPasswordReset,
+  resetPassword,
   registerUser,
   updateCurrentUser,
 } from "../services/auth.service.js";
@@ -51,6 +53,25 @@ export const login = async (req: Request, res: Response) => {
   res.json({
     user: toAuthUser(user),
   });
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  await requestPasswordReset(email);
+
+  res.json({
+    message:
+      "Jeśli konto istnieje, wysłaliśmy instrukcję odzyskania dostępu.",
+  });
+};
+
+export const resetUserPassword = async (req: Request, res: Response) => {
+  const { token, newPassword } = req.body;
+
+  await resetPassword({ token, newPassword });
+
+  res.json({ message: "Hasło zostało zmienione. Możesz się zalogować." });
 };
 
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {

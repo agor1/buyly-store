@@ -274,6 +274,82 @@ export const sendOrderConfirmationEmail = async ({
   });
 };
 
+export const sendPasswordResetRequestEmail = async ({
+  email,
+  name,
+  resetUrl,
+}: {
+  email: string;
+  name?: string | null;
+  resetUrl: string;
+}) => {
+  const safeEmail = escapeHtml(email);
+  const safeName = escapeHtml(name || "Kliencie");
+  const safeResetUrl = escapeHtml(resetUrl);
+
+  await transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to: email,
+    subject: "Reset hasla w Buyly Store",
+    text: [
+      `Czesc ${name || "Kliencie"},`,
+      "",
+      "Otrzymalismy prosbe o pomoc w odzyskaniu dostepu do Twojego konta Buyly Store.",
+      "Kliknij link ponizej, aby ustawic nowe haslo. Link jest wazny przez 60 minut.",
+      resetUrl,
+      "",
+      "Jesli to nie Ty, zignoruj ten email.",
+      "",
+      `Konto: ${email}`,
+    ].join("\n"),
+    html: `
+      <!doctype html>
+      <html lang="pl">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <title>Reset has&#322;a</title>
+        </head>
+        <body style="margin:0; padding:0; background:#f4f7fb; font-family:Arial, Helvetica, sans-serif; color:#172033;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f7fb; padding:32px 16px;">
+            <tr>
+              <td align="center">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px; overflow:hidden; border-radius:14px; background:#ffffff; box-shadow:0 16px 40px rgba(23, 32, 51, 0.08);">
+                  <tr>
+                    <td style="background:#0f172a; padding:28px 32px;">
+                      <p style="margin:0 0 8px; color:#67e8f9; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;">Buyly Store</p>
+                      <h1 style="margin:0; color:#ffffff; font-size:24px; line-height:1.3;">Pro&#347;ba o reset has&#322;a</h1>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:28px 32px;">
+                      <p style="margin:0 0 18px; color:#172033; font-size:16px; line-height:1.6;">Cze&#347;&#263; ${safeName},</p>
+                      <p style="margin:0 0 18px; color:#475569; font-size:15px; line-height:1.7;">Otrzymali&#347;my pro&#347;b&#281; o pomoc w odzyskaniu dost&#281;pu do Twojego konta Buyly Store.</p>
+                      <div style="padding:18px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc;">
+                        <p style="margin:0 0 8px; color:#64748b; font-size:13px; font-weight:700;">Konto</p>
+                        <p style="margin:0; color:#172033; font-size:15px;"><a href="mailto:${safeEmail}" style="color:#0891b2; text-decoration:none;">${safeEmail}</a></p>
+                      </div>
+                      <p style="margin:18px 0 22px; color:#475569; font-size:15px; line-height:1.7;">Kliknij przycisk poni&#380;ej, aby ustawi&#263; nowe has&#322;o. Link jest wa&#380;ny przez 60 minut.</p>
+                      <a href="${safeResetUrl}" style="display:inline-block; padding:13px 18px; border-radius:10px; background:#0891b2; color:#ffffff; font-size:14px; font-weight:700; text-decoration:none;">Ustaw nowe has&#322;o</a>
+                      <p style="margin:22px 0 0; color:#475569; font-size:13px; line-height:1.7;">Je&#347;li przycisk nie dzia&#322;a, skopiuj ten adres do przegl&#261;darki:<br /><a href="${safeResetUrl}" style="color:#0891b2; word-break:break-all;">${safeResetUrl}</a></p>
+                      <p style="margin:18px 0 0; color:#475569; font-size:15px; line-height:1.7;">Je&#347;li to nie Ty wys&#322;a&#322;e&#347; pro&#347;b&#281;, zignoruj ten email.</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:18px 32px; border-top:1px solid #e2e8f0; background:#f8fafc; color:#64748b; font-size:12px; line-height:1.5;">
+                      To automatyczna wiadomo&#347;&#263; z Buyly Store.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `,
+  });
+};
+
 export const sendDetailsMessage = async ({
   email,
   subject,
